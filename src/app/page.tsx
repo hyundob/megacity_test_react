@@ -1,103 +1,195 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useEffect, useState } from 'react';
+import { Circle } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
+import './globals.css';
+
+type Forecast = {
+  crtnTm: string;
+  fcstTm: string;
+  fcstSrad: number;
+  fcstTemp: number;
+  fcstHumi: number;
+  fcstWspd: number;
+  fcstPsfc: number;
+};
+
+type SukubM = {
+  tm: string;
+  suppAbility: number;
+  currPwrTot: number;
+  renewPwrTot: number;
+  renewPwrSolar: number;
+  renewPwrWind: number;
+};
+
+type PredictSolar = {
+  fcstTm: string;
+  fcstQgen: number;
+  fcstQgmx: number;
+  fcstQgmn: number;
+};
+
+export default function Dashboard() {
+  const [forecast, setForecast] = useState<Forecast | null>(null);
+  const [sukubM, setSukubM] = useState<SukubM | null>(null);
+  const [predictData, setPredictData] = useState<PredictSolar[]>([]);
+  const [lastUpdated, setLastUpdated] = useState('');
+  const [apiStatus, setApiStatus] = useState<'ok' | 'error'>('error');
+  const [dbStatus, setDbStatus] = useState<'ok' | 'error'>('error');
+
+  const formatTime = (raw: string) =>
+      `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)} ${raw.slice(8, 10)}:${raw.slice(10, 12)}`;
+
+  const getStatusColor = (status: 'ok' | 'error') => (status === 'ok' ? 'green' : 'red');
+
+  const loadData = async () => {
+    try {
+      const [forecastRes, sukubRes, predictRes] = await Promise.all([
+        fetch('http://localhost:8080/api/forecast/latest'),
+        fetch('http://localhost:8080/api/operation/latest'),
+        fetch('http://localhost:8080/api/fcst-gen/chart'),
+      ]);
+
+      if (!forecastRes.ok || !sukubRes.ok || !predictRes.ok) throw new Error('API 오류');
+
+      const forecastData = await forecastRes.json();
+      const sukubData = await sukubRes.json();
+      const predict = await predictRes.json();
+
+      setForecast(forecastData);
+      setSukubM(sukubData);
+      setPredictData(predict);
+      setLastUpdated(new Date().toLocaleTimeString());
+      setApiStatus('ok');
+      setDbStatus(forecastData && sukubData ? 'ok' : 'error');
+    } catch (err) {
+      console.error(err);
+      setApiStatus('error');
+      setDbStatus('error');
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="p-4">
+        <div className="bg-gray-100 rounded shadow p-4 flex items-center justify-start gap-6 mb-4">
+          <div>⏱ 마지막 업데이트: <strong>{lastUpdated || '로딩 중...'}</strong></div>
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-1">
+              <Circle size={14} color={getStatusColor(apiStatus)} fill={getStatusColor(apiStatus)} />
+              <span>API</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Circle size={14} color={getStatusColor(dbStatus)} fill={getStatusColor(dbStatus)} />
+              <span>DB</span>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {forecast && (
+            <div className="p-4 bg-white rounded shadow mb-6">
+              <h2 className="text-lg font-semibold mb-2">기상 예보 정보</h2>
+              <p>생성시간: {formatTime(forecast.crtnTm)}</p>
+              <p>예측시간: {formatTime(forecast.fcstTm)}</p>
+              <p>일사량: {forecast.fcstSrad}</p>
+              <p>기온: {forecast.fcstTemp} °C</p>
+              <p>습도: {forecast.fcstHumi} %</p>
+              <p>풍속: {forecast.fcstWspd} m/s</p>
+              <p>기압: {forecast.fcstPsfc} hPa</p>
+            </div>
+        )}
+
+        {sukubM && (
+            <div className="p-4 bg-white rounded shadow">
+              <h2 className="text-lg font-semibold mb-2">제주 계통 운영 정보</h2>
+              <p>기준시각: {formatTime(sukubM.tm)}</p>
+              <p>공급능력: {sukubM.suppAbility} MW</p>
+              <p>현재수요: {sukubM.currPwrTot} MW</p>
+              <p>신재생합계: {sukubM.renewPwrTot} MW</p>
+              <p>태양광합계: {sukubM.renewPwrSolar} MW</p>
+              <p>풍력합계: {sukubM.renewPwrWind} MW</p>
+            </div>
+        )}
+
+        <div className="p-6 bg-white rounded-2xl shadow-md mt-6">
+          <h2 className="text-xl font-bold mb-4 text-gray-800">태양광 발전 예측 차트</h2>
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart
+                data={predictData.map(item => ({
+                  ...item,
+                  hour: item.fcstTm.slice(8, 10) + ':00',
+                }))}
+                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+              <YAxis unit=" MWh" tick={{ fontSize: 12 }} />
+              <Tooltip
+                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8 }}
+                  labelStyle={{ fontWeight: 'bold', color: '#6b7280' }}
+                  itemStyle={{ fontSize: 13 }}
+              />
+              {/* 기본 Legend + payload 활성화 */}
+              <Legend
+                  verticalAlign="top"
+                  height={36}
+                  wrapperStyle={{ fontSize: '13px' }}
+              />
+
+              {/* isAnimationActive 를 true 또는 생략 */}
+              <Line
+                  type="monotone"
+                  dataKey="fcstQgen"
+                  name="최종 발전량"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 6 }}
+                  isAnimationActive={true}
+              />
+              <Line
+                  type="monotone"
+                  dataKey="fcstQgmx"
+                  name="최대 예측"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  isAnimationActive={true}
+              />
+              <Line
+                  type="monotone"
+                  dataKey="fcstQgmn"
+                  name="최소 예측"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  isAnimationActive={true}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {!forecast && !sukubM && (
+            <p className="text-gray-500 mt-4">데이터 로딩 중...</p>
+        )}
+      </div>
   );
 }
