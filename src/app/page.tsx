@@ -7,7 +7,7 @@ import {
   Line,
   XAxis,
   YAxis,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   CartesianGrid,
@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import './globals.css';
 
+// ===== 타입 =====
 type Forecast = {
   crtnTm: string;
   fcstTm: string;
@@ -91,6 +92,30 @@ type GemToday = {
   hgenCapa: number;
 };
 
+// ===== 시스템 상태용 타입 & 유틸 =====
+type ServiceHealth = 'ok' | 'slow' | 'down';
+const msToHealth = (ok: boolean, ms: number): ServiceHealth => {
+  if (!ok) return 'down';
+  if (ms <= 200) return 'ok';
+  if (ms <= 800) return 'slow';
+  return 'down';
+};
+const healthText = (h: ServiceHealth) =>
+    h === 'ok' ? '정상' : h === 'slow' ? '지연' : '장애';
+const healthDot = (h: ServiceHealth) =>
+    h === 'ok' ? 'bg-green-500' : h === 'slow' ? 'bg-yellow-500' : 'bg-red-500';
+
+// 요청시간 측정 래퍼
+async function fetchWithTiming(url: string) {
+  const t0 = performance.now();
+  const res = await fetch(url);
+  const t1 = performance.now();
+  return { res, ms: t1 - t0 };
+}
+
+// ===== 실시간 알림(예제) 타입 =====
+type AlertItem = { id: string; icon: 'warn' | 'bell'; title: string; desc: string; ago: string; };
+
 // SoC 표기 포맷: 값 없으면 --%
 const formatSoc = (v: number | null | undefined) =>
     typeof v === 'number' && !Number.isNaN(v) ? `${v}%` : '--%';
@@ -138,58 +163,88 @@ export default function Dashboard() {
   const [bestChrgTimes, setBestChrgTimes] = useState<string[]>([]);
   const [bestDiscTimes, setBestDiscTimes] = useState<string[]>([]);
 
-  //수소 생산량 정보
+  // 수소 생산량 정보(발전단지)
   const [gemToday, setGemToday] = useState<GemToday[]>([]);
   const [gemUtilPct, setGemUtilPct] = useState<number | null>(null);
   const [gemLastItem, setGemLastItem] = useState<GemToday | null>(null);
   const [gemLatency, setGemLatency] = useState<number | null>(null); // 초 단위
+
+  // 시스템 상태
+  const [alerts] = useState<AlertItem[]>([
+    { id: 'a1', icon: 'warn', title: '태양광 발전량 급감', desc: '10분 전 - 태양광 발전량이 예측치 대비 20% 감소했습니다.', ago: '10분 전' },
+    { id: 'a2', icon: 'bell', title: '전력 수요 증가', desc: '30분 전 - 전력 수요가 예측치보다 5% 증가했습니다.', ago: '30분 전' },
+  ]);
+  const [latApi, setLatApi] = useState<number | null>(null);
+  const [latDb, setLatDb] = useState<number | null>(null);
+  const [latPredict, setLatPredict] = useState<number | null>(null);
+  const [healthApi, setHealthApi] = useState<ServiceHealth>('down');
+  const [healthDb, setHealthDb] = useState<ServiceHealth>('down');
+  const [healthPredict, setHealthPredict] = useState<ServiceHealth>('down');
 
   const formatTime = (raw: string) =>
       `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)} ${raw.slice(8, 10)}:${raw.slice(10, 12)}`;
 
   const getStatusColor = (status: 'ok' | 'error') => (status === 'ok' ? 'green' : 'red');
 
-  // 응답시간 측정 시작
-  const t0Gem = performance.now();
   const loadData = async () => {
     try {
-      const [forecastRes, sukubRes, predictRes, predictDemandRes, sukubTodayRes, curtRes, genRes, gemRes,] = await Promise.all([
-        fetch('http://210.222.202.14:18080/api/forecast/latest'),
-        fetch('http://210.222.202.14:18080/api/operation/latest'),
-        fetch('http://210.222.202.14:18080/api/fcst-gen/chart'),
-        fetch('http://210.222.202.14:18080/api/lfd/demand-today'),
-        fetch('http://210.222.202.14:18080/api/operation/today'),
-        fetch('http://210.222.202.14:18080/api/curt/today'),
-        fetch('http://210.222.202.14:18080/api/gen/today'),
-        fetch('http://210.222.202.14:18080/api/gem/today'),
+      // 각 엔드포인트별로 시간 측정
+      const [
+        forecastWrap,
+        sukubWrap,
+        predictWrap,
+        demandWrap,
+        sukubTodayWrap,
+        curtWrap,
+        genWrap,
+        gemWrap,
+      ] = await Promise.all([
+        fetchWithTiming('http://210.222.202.14:18080/api/forecast/latest'),   // API 서버 헬스에 사용
+        fetchWithTiming('http://210.222.202.14:18080/api/operation/latest'), // DB 헬스 대표
+        fetchWithTiming('http://210.222.202.14:18080/api/fcst-gen/chart'),   // 예측 엔진 헬스
+        fetchWithTiming('http://210.222.202.14:18080/api/lfd/demand-today'),
+        fetchWithTiming('http://210.222.202.14:18080/api/operation/today'),
+        fetchWithTiming('http://210.222.202.14:18080/api/curt/today'),
+        fetchWithTiming('http://210.222.202.14:18080/api/gen/today'),
+        fetchWithTiming('http://210.222.202.14:18080/api/gem/today'),
       ]);
 
-      //측정끝
-      const t1Gem = performance.now();
+      if (
+          !forecastWrap.res.ok || !sukubWrap.res.ok || !predictWrap.res.ok ||
+          !demandWrap.res.ok || !sukubTodayWrap.res.ok || !curtWrap.res.ok ||
+          !genWrap.res.ok || !gemWrap.res.ok
+      ) throw new Error('API 오류');
 
-      if (!forecastRes.ok || !sukubRes.ok || !predictRes.ok || !predictDemandRes.ok || !sukubTodayRes.ok || !curtRes.ok || !genRes.ok || !gemRes.ok)
-        throw new Error('API 오류');
+      // 파싱
+      const forecastData: Forecast = await forecastWrap.res.json();
+      const sukubData: SukubM = await sukubWrap.res.json();
+      const sukubTodayData: SukubMItem[] = await sukubTodayWrap.res.json();
+      const predict: PredictSolar[] = await predictWrap.res.json();
+      const predictDemandData: PredictDemand[] = await demandWrap.res.json();
+      const curtData: Curt[] = await curtWrap.res.json();
+      const genData: GenToday[] = await genWrap.res.json();
+      const gemData: GemToday[] = await gemWrap.res.json();
 
-      const forecastData: Forecast = await forecastRes.json();
-      const sukubData: SukubM = await sukubRes.json();
-      const sukubTodayData: SukubMItem[] = await sukubTodayRes.json();
-      const predict: PredictSolar[] = await predictRes.json();
-      const predictDemandData: PredictDemand[] = await predictDemandRes.json();
-      const curtData: Curt[] = await curtRes.json();
-      const genData: GenToday[] = await genRes.json();
-      const gemData: GemToday[] = await gemRes.json();
+      // 시스템 상태 산출
+      setLatApi(Number(forecastWrap.ms.toFixed(0)));
+      setLatDb(Number(sukubWrap.ms.toFixed(0)));
+      setLatPredict(Number(predictWrap.ms.toFixed(0)));
+      setHealthApi(msToHealth(true, forecastWrap.ms));
+      setHealthDb(msToHealth(true, sukubWrap.ms));
+      setHealthPredict(msToHealth(true, predictWrap.ms));
 
+      // 필터/정렬
+      const genFilter = genData
+          .filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL')
+          .sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
 
-      //필터
-      const genFilter = genData.filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL');
-      const gemFilter = gemData.filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL');
+      const gemFilter = gemData
+          .filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL')
+          .sort((a, b) => a.tm.localeCompare(b.tm));
 
-      // 정렬
       predict.sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
       predictDemandData.sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
       curtData.sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-      genFilter.sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-      gemFilter.sort((a, b) => a.tm.localeCompare(b.tm));
 
       // 상태 반영
       setForecast(forecastData);
@@ -201,31 +256,26 @@ export default function Dashboard() {
       setGemToday(gemFilter);
 
       // 수요예측 + 실제수요 병합
-      const merged = predictDemandData.map((item) => {
-        const matched = sukubTodayData.find((s) => s.tm.slice(8, 10) === item.fcstTm.slice(8, 10));
+      const merged = predictDemandData.map(item => {
+        const matched = sukubTodayData.find(s => s.tm.slice(8, 10) === item.fcstTm.slice(8, 10));
         return { ...item, currPwrTot: matched?.currPwrTot ?? null };
       });
       setPredictDemand(merged);
 
-      // === ESS 파생 (즉시식 SoC) ===
+      // ESS 파생
       const ess = buildEssSeriesFromData(predict);
       setEssSeries(ess);
-
-      // "현재 SoC" = 가장 마지막 시각의 SoC
       const lastWithSoc = [...ess].reverse().find(p => typeof p.soc === 'number');
       setCurrentSoc(lastWithSoc?.soc ?? null);
-
       setBestChrgTimes(topHours(ess, 'essChrg', 3));
       setBestDiscTimes(topHours(ess, 'essDisc', 3));
-      // === ESS 파생 끝 ===
 
-      // 최신 시각 항목 & 자원활용률 계산 & 응답 시간
+      // 수소 생산(단지) 카드용
       const last = gemFilter[gemFilter.length - 1] ?? null;
       setGemLastItem(last);
       const util = last && last.hgenCapa > 0 ? Math.round((last.hgenProd / last.hgenCapa) * 100) : null;
       setGemUtilPct(util);
-      setGemLatency(Number(((t1Gem - t0Gem) / 1000).toFixed(1)));
-
+      setGemLatency(Number(((gemWrap.ms) / 1000).toFixed(1)));
 
       setLastUpdated(new Date().toLocaleTimeString());
       setApiStatus('ok');
@@ -234,6 +284,9 @@ export default function Dashboard() {
       console.error(err);
       setApiStatus('error');
       setDbStatus('error');
+      setHealthApi('down');
+      setHealthDb('down');
+      setHealthPredict('down');
     }
   };
 
@@ -260,8 +313,93 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 🔽 카드 2열 그리드 */}
+        {/* 2열 그리드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 실시간 알림 (예제) - 전체폭 */}
+          <div className="p-6 bg-white rounded-2xl shadow-md md:col-span-2">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-bold text-gray-800">실시간 알림</h2>
+              <div className="flex items-center gap-2 text-gray-400">
+                <button className="hover:text-gray-600" title="확대">⤢</button>
+                <button className="hover:text-gray-600" title="더보기">⋯</button>
+              </div>
+            </div>
+            <div className="space-y-3 max-h-40 overflow-auto pr-2">
+              {alerts.map(a => (
+                  <div key={a.id} className="flex items-start gap-3 p-3 border rounded-xl">
+                    <div className="mt-0.5">{a.icon === 'warn' ? '⚠️' : '🔔'}</div>
+                    <div className="flex-1">
+                      <div className="font-semibold">{a.title}</div>
+                      <div className="text-sm text-gray-600">{a.desc}</div>
+                    </div>
+                    <div className="text-xs text-gray-500 whitespace-nowrap">{a.ago}</div>
+                  </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 시스템 상태 - 전체폭 */}
+          <div className="p-6 bg-white rounded-2xl shadow-md md:col-span-2">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-bold text-gray-800">시스템 상태</h2>
+              <div className="flex items-center gap-2 text-gray-400">
+                <button className="hover:text-gray-600" title="확대">⤢</button>
+                <button className="hover:text-gray-600" title="더보기">⋯</button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* API 서버 */}
+              <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${healthDot(healthApi)}`} />
+                  <span className="text-gray-800">API 서버</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">{latApi !== null ? `${latApi}ms` : '—'}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border
+                  ${healthApi==='ok' ? 'bg-green-50 text-green-700 border-green-200' :
+                      healthApi==='slow' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                          'bg-red-50 text-red-700 border-red-200'}`}>
+                  {healthText(healthApi)}
+                </span>
+                </div>
+              </div>
+              {/* 데이터베이스 */}
+              <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${healthDot(healthDb)}`} />
+                  <span className="text-gray-800">데이터베이스</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">{latDb !== null ? `${latDb}ms` : '—'}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border
+                  ${healthDb==='ok' ? 'bg-green-50 text-green-700 border-green-200' :
+                      healthDb==='slow' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                          'bg-red-50 text-red-700 border-red-200'}`}>
+                  {healthText(healthDb)}
+                </span>
+                </div>
+              </div>
+              {/* 예측 엔진 */}
+              <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${healthDot(healthPredict)}`} />
+                  <span className="text-gray-800">예측 엔진</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">{latPredict !== null ? `${latPredict}ms` : '—'}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border
+                  ${healthPredict==='ok' ? 'bg-green-50 text-green-700 border-green-200' :
+                      healthPredict==='slow' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                          'bg-red-50 text-red-700 border-red-200'}`}>
+                  {healthText(healthPredict)}
+                </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 이하 기존 카드들 */}
           {forecast && (
               <div className="p-4 bg-white rounded shadow">
                 <h2 className="text-lg font-semibold mb-2">기상 예보 정보</h2>
@@ -297,7 +435,7 @@ export default function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
                 <YAxis unit=" MWh" tick={{ fontSize: 12 }} />
-                <Tooltip
+                <RechartsTooltip
                     contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8 }}
                     labelStyle={{ fontWeight: 'bold', color: '#6b7280' }}
                     itemStyle={{ fontSize: 13 }}
@@ -321,7 +459,7 @@ export default function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
                     <YAxis unit=" MW" tick={{ fontSize: 12 }} />
-                    <Tooltip
+                    <RechartsTooltip
                         contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8 }}
                         labelStyle={{ fontWeight: 'bold', color: '#6b7280' }}
                         itemStyle={{ fontSize: 13 }}
@@ -349,7 +487,7 @@ export default function Dashboard() {
                     <YAxis yAxisId="left" unit=" MWh" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="right" orientation="right" unit=" MW" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="soc" orientation="right" domain={[0, 100]} unit=" %" hide />
-                    <Tooltip
+                    <RechartsTooltip
                         contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8 }}
                         labelStyle={{ fontWeight: 'bold', color: '#6b7280' }}
                         itemStyle={{ fontSize: 13 }}
@@ -395,7 +533,7 @@ export default function Dashboard() {
                     <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="left" unit=" MW/m2" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="right" orientation="right" unit=" MW/m2" tick={{ fontSize: 12 }} />
-                    <Tooltip
+                    <RechartsTooltip
                         formatter={(value: number, name: string) => {
                           if (name.includes('최소출력')) return [`${value} MW/m2`, name];
                           if (name.includes('출력제어')) return [`${value} MW/m2`, name];
@@ -437,7 +575,7 @@ export default function Dashboard() {
                     <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="left" unit=" MWh" tick={{ fontSize: 12 }} />
                     <YAxis yAxisId="right" orientation="right" unit=" MW" tick={{ fontSize: 12 }} />
-                    <Tooltip
+                    <RechartsTooltip
                         formatter={(v: number, name: string) => {
                           if (name.includes('최종생산량')) return [`${v} MWh`, name];
                           if (name.includes('예측설비용량')) return [`${v} MW`, name];
@@ -464,23 +602,27 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-500 mt-1">기준시간 : {formatTime(gemLastItem.tm)}</p>
                   </div>
                   <div className="flex items-center">
-              <span className="text-xs bg-gray-100 text-gray-700 border border-gray-200 rounded-full px-2 py-1">
-                {gemToday.length} 활성
-              </span>
+                <span className="text-xs bg-gray-100 text-gray-700 border border-gray-200 rounded-full px-2 py-1">
+                  {gemToday.length} 활성
+                </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-gray-500 mt-4">
                   <span>연결된 자원</span>
                   <span>
-              마지막 동기화: {(() => {
-                    const now = new Date();
-                    const s = gemLastItem.tm;
-                    const d = new Date(Number(s.slice(0,4)), Number(s.slice(4,6))-1, Number(s.slice(6,8)), Number(s.slice(8,10)), Number(s.slice(10,12)));
-                    const diffMin = Math.max(0, Math.round((now.getTime() - d.getTime())/60000));
-                    return `${diffMin}분 전`;
-                  })()}
-            </span>
+                마지막 동기화:{' '}
+                    {(() => {
+                      const now = new Date();
+                      const s = gemLastItem.tm;
+                      const d = new Date(
+                          Number(s.slice(0,4)), Number(s.slice(4,6))-1, Number(s.slice(6,8)),
+                          Number(s.slice(8,10)), Number(s.slice(10,12))
+                      );
+                      const diffMin = Math.max(0, Math.round((now.getTime() - d.getTime())/60000));
+                      return `${diffMin}분 전`;
+                    })()}
+              </span>
                 </div>
 
                 <div className="mt-2">
