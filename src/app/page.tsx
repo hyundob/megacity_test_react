@@ -58,11 +58,11 @@ export default function Page() {
                     healthPredict={d.healthPredict}
                 />
 
-                {d.forecast && <ForecastInfoCard data={d.forecast} />}
-                {d.sukubM && <SukubInfoCard data={d.sukubM} />}
+                {d.forecastPredict && <ForecastInfoCard data={d.forecastPredict} />}
+                {d.sukubOperation && <SukubInfoCard data={d.sukubOperation} />}
 
-                <SolarPredictChart data={d.predictData} />
-                {d.predictDemand.length > 0 && <DemandPredictChart data={d.predictDemand} />}
+                <SolarPredictChart data={d.reGenPredictData} />
+                {d.demandPredict.length > 0 && <DemandPredictChart data={d.demandPredict} />}
 
                 <EssStrategyCard
                     series={d.essSeries}
@@ -71,21 +71,21 @@ export default function Page() {
                     bestDiscTimes={d.bestDiscTimes}
                 />
 
-                {d.curtToday.length > 0 && <CurtChart data={d.curtToday} />}
+                {d.jejuCurtPredictToday.length > 0 && <CurtChart data={d.jejuCurtPredictToday} />}
 
-                {d.genToday.length > 0 && <HydrogenForecastChart data={d.genToday} />}
+                {d.hgGenPredictToday.length > 0 && <HydrogenForecastChart data={d.hgGenPredictToday} />}
 
-                {d.gemLastItem && (
+                {d.hgGenLastItem && (
                     <HydrogenProductionCard
-                        lastItem={d.gemLastItem}
-                        utilPct={d.gemUtilPct}
-                        latency={d.gemLatency}
-                        totalItems={d.gemToday.length}
+                        lastItem={d.hgGenLastItem}
+                        utilPct={d.hgGenUtilPct}
+                        latency={d.hgGenLatency}
+                        totalItems={d.hgGenInfoToday.length}
                     />
                 )}
             </div>
 
-            {!d.forecast && !d.sukubM && (
+            {!d.forecastPredict && !d.sukubOperation && (
                 <p className="text-gray-500 mt-4">데이터 로딩 중...</p>
             )}
 

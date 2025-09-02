@@ -1,27 +1,27 @@
 import { useEffect, useState } from 'react';
 import { fetchWithTiming, ENDPOINTS } from './api';
 import {
-    Forecast, SukubM, SukubMItem, PredictSolar, PredictDemand, Curt,
-    GenToday, GemToday, EssPoint, ServiceHealth, AlertItem
+    ForecastPredict, SukubOperation, SukubOperationItem, ReGenPredict, DemandPredict, JejuCurtPredict,
+    HgGenPredict, HgGenInfo, EssPoint, ServiceHealth, AlertItem
 } from './types';
 import { buildEssSeriesFromData, topHours, msToHealth } from './utils';
 
 export function useDashboardData() {
     // 원본/파생 상태
-    const [forecast, setForecast] = useState<Forecast | null>(null);
-    const [sukubM, setSukubM] = useState<SukubM | null>(null);
-    const [sukubToday, setSukubToday] = useState<SukubMItem[]>([]);
-    const [predictData, setPredictData] = useState<PredictSolar[]>([]);
-    const [predictDemand, setPredictDemand] = useState<PredictDemand[]>([]);
-    const [curtToday, setCurtToday] = useState<Curt[]>([]);
-    const [genToday, setGenToday] = useState<GenToday[]>([]);
-    const [gemToday, setGemToday] = useState<GemToday[]>([]);
+    const [forecastPredict, setForecastPredict] = useState<ForecastPredict | null>(null);
+    const [sukubOperation, setSukubOperation] = useState<SukubOperation | null>(null);
+    const [sukubOperationToday, setSukubOperationToday] = useState<SukubOperationItem[]>([]);
+    const [reGenPredictData, setReGenPredictData] = useState<ReGenPredict[]>([]);
+    const [demandPredict, setDemandPredict] = useState<DemandPredict[]>([]);
+    const [jejuCurtPredictToday, setJejuCurtPredictToday] = useState<JejuCurtPredict[]>([]);
+    const [hgGenPredictToday, setHgGenPredictToday] = useState<HgGenPredict[]>([]);
+    const [hgGenInfoToday, setHgGenInfoToday] = useState<HgGenInfo[]>([]);
     const [essSeries, setEssSeries] = useState<EssPoint[]>([]);
     const [currentSoc, setCurrentSoc] = useState<number | null>(null);
     const [bestChrgTimes, setBestChrgTimes] = useState<string[]>([]);
     const [bestDiscTimes, setBestDiscTimes] = useState<string[]>([]);
-    const [gemUtilPct, setGemUtilPct] = useState<number | null>(null);
-    const [gemLastItem, setGemLastItem] = useState<GemToday | null>(null);
+    const [hgGenUtilPct, setHgGenUtilPct] = useState<number | null>(null);
+    const [hgGenLastItem, setHgGenLastItem] = useState<HgGenInfo | null>(null);
 
     const [lastUpdated, setLastUpdated] = useState('');
     const [apiStatus, setApiStatus] = useState<'ok' | 'error'>('error');
@@ -38,75 +38,75 @@ export function useDashboardData() {
     const [healthApi, setHealthApi] = useState<ServiceHealth>('down');
     const [healthDb, setHealthDb] = useState<ServiceHealth>('down');
     const [healthPredict, setHealthPredict] = useState<ServiceHealth>('down');
-    const [gemLatency, setGemLatency] = useState<number | null>(null);
+    const [hgGenLatency, setHgGenLatency] = useState<number | null>(null);
 
     const load = async () => {
         const [
-            forecastWrap, sukubWrap, predictWrap, demandWrap,
-            sukubTodayWrap, curtWrap, genWrap, gemWrap,
+            forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
+            sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap,
         ] = await Promise.all([
-            fetchWithTiming(ENDPOINTS.forecast),
-            fetchWithTiming(ENDPOINTS.operationLatest),
-            fetchWithTiming(ENDPOINTS.solarChart),
-            fetchWithTiming(ENDPOINTS.demandToday),
-            fetchWithTiming(ENDPOINTS.operationToday),
-            fetchWithTiming(ENDPOINTS.curtToday),
-            fetchWithTiming(ENDPOINTS.genToday),
-            fetchWithTiming(ENDPOINTS.gemToday),
+            fetchWithTiming(ENDPOINTS.forecastPredict),
+            fetchWithTiming(ENDPOINTS.sukubOperationLatest),
+            fetchWithTiming(ENDPOINTS.reGenPredictChart),
+            fetchWithTiming(ENDPOINTS.demandPredictToday),
+            fetchWithTiming(ENDPOINTS.sukubOperationToday),
+            fetchWithTiming(ENDPOINTS.jejuCurtPredictToday),
+            fetchWithTiming(ENDPOINTS.hgGenPredictToday),
+            fetchWithTiming(ENDPOINTS.hgGenInfoToday),
         ]);
 
         // ok 체크
         const ok = [
-            forecastWrap, sukubWrap, predictWrap, demandWrap,
-            sukubTodayWrap, curtWrap, genWrap, gemWrap
+            forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
+            sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap
         ].every(w => w.res.ok);
         if (!ok) throw new Error('API 오류');
 
         // 파싱
-        const [forecastData, sukubData, predict, predictDemandData, sukubTodayData, curtData, genData, gemData] =
+        const [forecastPredictData, sukubOperationData, reGenPredict, demandPredictData, sukubOperationTodayData, jejuCurtPredictData, hgGenPredictData, hgGenInfoData] =
             await Promise.all([
-                forecastWrap.res.json(), sukubWrap.res.json(), predictWrap.res.json(), demandWrap.res.json(),
-                sukubTodayWrap.res.json(), curtWrap.res.json(), genWrap.res.json(), gemWrap.res.json()
+                forecastPredictWrap.res.json(), sukubOperationWrap.res.json(), reGenPredictWrap.res.json(), demandPredictWrap.res.json(),
+                sukubOperationTodayWrap.res.json(), jejuCurtPredictWrap.res.json(), hgGenPredictWrap.res.json(), hgGenInfoWrap.res.json()
             ]);
 
         // 상태 산출
-        setLatApi(Number(forecastWrap.ms.toFixed(0)));
-        setLatDb(Number(sukubWrap.ms.toFixed(0)));
-        setLatPredict(Number(predictWrap.ms.toFixed(0)));
-        setHealthApi(msToHealth(true, forecastWrap.ms));
-        setHealthDb(msToHealth(true, sukubWrap.ms));
-        setHealthPredict(msToHealth(true, predictWrap.ms));
+        setLatApi(Number(forecastPredictWrap.ms.toFixed(0)));
+        setLatDb(Number(sukubOperationWrap.ms.toFixed(0)));
+        setLatPredict(Number(reGenPredictWrap.ms.toFixed(0)));
+        setHealthApi(msToHealth(true, forecastPredictWrap.ms));
+        setHealthDb(msToHealth(true, sukubOperationWrap.ms));
+        setHealthPredict(msToHealth(true, reGenPredictWrap.ms));
 
         // 필터/정렬
-        const genFilter = (genData as GenToday[])
+        const hgGenPredictFilter = (hgGenPredictData as HgGenPredict[])
             .filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL')
             .sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
 
-        const gemFilter = (gemData as GemToday[])
+        const hgGenInfoFilter = (hgGenInfoData as HgGenInfo[])
             .filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL')
             .sort((a, b) => a.tm.localeCompare(b.tm));
 
-        (predict as PredictSolar[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-        (predictDemandData as PredictDemand[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-        (curtData as Curt[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
+        (reGenPredict as ReGenPredict[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
+        (demandPredictData as DemandPredict[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
+        (jejuCurtPredictData as JejuCurtPredict[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
 
         // 상태 반영
-        setForecast(forecastData as Forecast);
-        setSukubM(sukubData as SukubM);
-        setPredictData(predict as PredictSolar[]);
-        setSukubToday(sukubTodayData as SukubMItem[]);
-        setCurtToday(curtData as Curt[]);
-        setGenToday(genFilter);
-        setGemToday(gemFilter);
+        setForecastPredict(forecastPredictData as ForecastPredict);
+        setSukubOperation(sukubOperationData as SukubOperation);
+        setReGenPredictData(reGenPredict as ReGenPredict[]);
+        setSukubOperationToday(sukubOperationTodayData as SukubOperationItem[]);
+        setJejuCurtPredictToday(jejuCurtPredictData as JejuCurtPredict[]);
+        setHgGenPredictToday(hgGenPredictFilter);
+        setHgGenInfoToday(hgGenInfoFilter);
 
         // 병합
-        setPredictDemand((predictDemandData as PredictDemand[]).map(item => {
-            const matched = (sukubTodayData as SukubMItem[]).find(s => s.tm.slice(8,10) === item.fcstTm.slice(8,10));
+        setDemandPredict((demandPredictData as DemandPredict[]).map(item => {
+            const matched = (sukubOperationTodayData as SukubOperationItem[]).find(s => s.tm.slice(8,10) === item.fcstTm.slice(8,10));
             return { ...item, currPwrTot: matched?.currPwrTot ?? null };
         }));
 
         // ESS 파생
-        const ess = buildEssSeriesFromData(predict as PredictSolar[]);
+        const ess = buildEssSeriesFromData(reGenPredict as ReGenPredict[]);
         setEssSeries(ess);
         const lastWithSoc = [...ess].reverse().find(p => typeof p.soc === 'number');
         setCurrentSoc(lastWithSoc?.soc ?? null);
@@ -114,15 +114,15 @@ export function useDashboardData() {
         setBestDiscTimes(topHours(ess, 'essDisc', 3));
 
         // 수소 생산(단지)
-        const last = gemFilter[gemFilter.length - 1] ?? null;
-        setGemLastItem(last);
+        const last = hgGenInfoFilter[hgGenInfoFilter.length - 1] ?? null;
+        setHgGenLastItem(last);
         const util = last && last.hgenCapa > 0 ? Math.round((last.hgenProd / last.hgenCapa) * 100) : null;
-        setGemUtilPct(util);
-        setGemLatency(Number(((gemWrap.ms) / 1000).toFixed(1)));
+        setHgGenUtilPct(util);
+        setHgGenLatency(Number(((hgGenInfoWrap.ms) / 1000).toFixed(1)));
 
         setLastUpdated(new Date().toLocaleTimeString());
         setApiStatus('ok');
-        setDbStatus(forecastData && sukubData ? 'ok' : 'error');
+        setDbStatus(forecastPredictData && sukubOperationData ? 'ok' : 'error');
     };
 
     useEffect(() => {
@@ -135,11 +135,11 @@ export function useDashboardData() {
 
     return {
         // 원본/파생
-        forecast, sukubM, predictData, predictDemand, curtToday, genToday, gemToday,
+        forecastPredict, sukubOperation, reGenPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
         essSeries, currentSoc, bestChrgTimes, bestDiscTimes,
-        gemUtilPct, gemLastItem,
+        hgGenUtilPct, hgGenLastItem,
         // 시스템/공용
-        alerts, latApi, latDb, latPredict, healthApi, healthDb, healthPredict, gemLatency,
+        alerts, latApi, latDb, latPredict, healthApi, healthDb, healthPredict, hgGenLatency,
         lastUpdated, apiStatus, dbStatus,
     };
 }

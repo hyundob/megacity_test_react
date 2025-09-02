@@ -6,12 +6,12 @@ export async function fetchWithTiming(url: string) {
 }
 
 export const ENDPOINTS = {
-    forecast: 'http://210.222.202.14:18080/api/forecast/latest',
-    operationLatest: 'http://210.222.202.14:18080/api/operation/latest',
-    solarChart: 'http://210.222.202.14:18080/api/fcst-gen/chart',
-    demandToday: 'http://210.222.202.14:18080/api/lfd/demand-today',
-    operationToday: 'http://210.222.202.14:18080/api/operation/today',
-    curtToday: 'http://210.222.202.14:18080/api/curt/today',
-    genToday: 'http://210.222.202.14:18080/api/gen/today',
-    gemToday: 'http://210.222.202.14:18080/api/gem/today',
+    forecastPredict: 'http://210.222.202.14:18080/api/forecast-predict/latest',
+    sukubOperationLatest: 'http://210.222.202.14:18080/api/sukub-operation/latest',
+    reGenPredictChart: 'http://210.222.202.14:18080/api/re-gen-predict/today',
+    demandPredictToday: 'http://210.222.202.14:18080/api/demand-predict/today',
+    sukubOperationToday: 'http://210.222.202.14:18080/api/sukub-operation/today',
+    jejuCurtPredictToday: 'http://210.222.202.14:18080/api/jeju-curt-predict/today',
+    hgGenPredictToday: 'http://210.222.202.14:18080/api/hg-gen-predict/today',
+    hgGenInfoToday: 'http://210.222.202.14:18080/api/hg-gen-info/today',
 };

@@ -1,7 +1,7 @@
-import { Forecast } from '@/lib/types';
+import { ForecastPredict } from '@/lib/types';
 import { formatTime } from '@/lib/utils';
 
-export default function ForecastInfoCard({ data }: { data: Forecast }) {
+export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
     return (
         <div className="p-4 bg-white rounded shadow">
             <h2 className="text-lg font-semibold mb-2">기상 예보 정보</h2>

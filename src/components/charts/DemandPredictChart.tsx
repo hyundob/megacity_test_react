@@ -1,10 +1,10 @@
-import { PredictDemand } from '@/lib/types';
+import { DemandPredict } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend
 } from 'recharts';
 
-export default function DemandPredictChart({ data }: { data: PredictDemand[] }) {
+export default function DemandPredictChart({ data }: { data: DemandPredict[] }) {
     const rows = data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' }));
     return (
         <div className="p-6 bg-white rounded-2xl shadow-md">

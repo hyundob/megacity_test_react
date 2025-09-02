@@ -1,9 +1,9 @@
-import { PredictSolar } from '@/lib/types';
+import { ReGenPredict } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend
 } from 'recharts';
 
-export default function SolarPredictChart({ data }: { data: PredictSolar[] }) {
+export default function SolarPredictChart({ data }: { data: ReGenPredict[] }) {
     const rows = data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' }));
     return (
         <div className="p-6 bg-white rounded-2xl shadow-md">

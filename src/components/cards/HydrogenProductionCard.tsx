@@ -1,8 +1,8 @@
-import { GemToday } from '@/lib/types';
+import { HgGenInfo } from '@/lib/types';
 import { formatTime } from '@/lib/utils';
 
 export default function HydrogenProductionCard({lastItem, utilPct, latency, totalItems,}: {
-    lastItem: GemToday | null;
+    lastItem: HgGenInfo | null;
     utilPct: number | null;
     latency: number | null;
     totalItems: number;

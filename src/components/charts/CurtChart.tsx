@@ -1,10 +1,10 @@
-import { Curt } from '@/lib/types';
+import { JejuCurtPredict } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend
 } from 'recharts';
 
-export default function CurtChart({ data }: { data: Curt[] }) {
+export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
     const rows = data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' }));
     return (
         <div className="p-6 bg-white rounded-2xl shadow-md">

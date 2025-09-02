@@ -199,14 +199,14 @@ export default function Dashboard() {
                 genWrap,
                 gemWrap,
             ] = await Promise.all([
-                fetchWithTiming('http://210.222.202.14:18080/api/forecast/latest'),   // API 서버 헬스에 사용
-                fetchWithTiming('http://210.222.202.14:18080/api/operation/latest'), // DB 헬스 대표
-                fetchWithTiming('http://210.222.202.14:18080/api/fcst-gen/chart'),   // 예측 엔진 헬스
-                fetchWithTiming('http://210.222.202.14:18080/api/lfd/demand-today'),
-                fetchWithTiming('http://210.222.202.14:18080/api/operation/today'),
-                fetchWithTiming('http://210.222.202.14:18080/api/curt/today'),
-                fetchWithTiming('http://210.222.202.14:18080/api/gen/today'),
-                fetchWithTiming('http://210.222.202.14:18080/api/gem/today'),
+                fetchWithTiming('http://210.222.202.14:18080/api/forecast-predict/latest'),   // API 서버 헬스에 사용
+                fetchWithTiming('http://210.222.202.14:18080/api/sukub-operation/latest'), // DB 헬스 대표
+                fetchWithTiming('http://210.222.202.14:18080/api/re-gen-predict/chart'),   // 예측 엔진 헬스
+                fetchWithTiming('http://210.222.202.14:18080/api/demand-predict/today'),
+                fetchWithTiming('http://210.222.202.14:18080/api/sukub-operation/today'),
+                fetchWithTiming('http://210.222.202.14:18080/api/jeju-curt-predict/today'),
+                fetchWithTiming('http://210.222.202.14:18080/api/hg-gen-predict/today'),
+                fetchWithTiming('http://210.222.202.14:18080/api/hg-gen-info/today'),
             ]);
 
             if (

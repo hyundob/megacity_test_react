@@ -1,4 +1,4 @@
-import { EssPoint, PredictSolar, ServiceHealth } from './types';
+import { EssPoint, ReGenPredict, ServiceHealth } from './types';
 
 export const formatTime = (raw: string) =>
     `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)} ${raw.slice(8, 10)}:${raw.slice(10, 12)}`;
@@ -6,7 +6,7 @@ export const formatTime = (raw: string) =>
 export const formatSoc = (v: number | null | undefined) =>
     typeof v === 'number' && !Number.isNaN(v) ? `${v}%` : '--%';
 
-export function buildEssSeriesFromData(arr: PredictSolar[]): EssPoint[] {
+export function buildEssSeriesFromData(arr: ReGenPredict[]): EssPoint[] {
     if (!arr.length) return [];
     const sorted = [...arr].sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
     return sorted.map(p => {

@@ -1,7 +1,7 @@
-import { SukubM } from '../../lib/types';
+import { SukubOperation } from '../../lib/types';
 import { formatTime } from '../../lib/utils';
 
-export default function SukubInfoCard({ data }: { data: SukubM }) {
+export default function SukubInfoCard({ data }: { data: SukubOperation }) {
     return (
         <div className="p-4 bg-white rounded shadow">
             <h2 className="text-lg font-semibold mb-2">제주 계통 운영 정보</h2>

@@ -1,10 +1,10 @@
-import { GenToday } from '../../lib/types';
+import { HgGenPredict } from '../../lib/types';
 import {
     ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend
 } from 'recharts';
 
-export default function HydrogenForecastChart({ data }: { data: GenToday[] }) {
+export default function HydrogenForecastChart({ data }: { data: HgGenPredict[] }) {
     const rows = data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' }));
     return (
         <div className="p-6 bg-white rounded-2xl shadow-md">
