@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React from 'react';
 import { Circle } from 'lucide-react';
 import { useDashboardData } from '@/lib/useDashboardData';
 /* import AlertsCard from '../components/alerts/AlertsCard'; */
@@ -14,12 +14,10 @@ import CurtChart from '../components/charts/CurtChart';
 import HydrogenForecastChart from '../components/charts/HydrogenForecastChart';
 import HydrogenProductionCard from '../components/cards/HydrogenProductionCard';
 import AlertsButton from '../components/alerts/AlertsButton';
-import AlertsModal from '../components/alerts/AlertsModal';
 import './globals.css';
 
 export default function Page() {
     const d = useDashboardData();
-    const [isAlertsOpen, setIsAlertsOpen] = useState(false);
     const getColor = (s: 'ok' | 'error') => (s === 'ok' ? 'green' : 'red');
 
     return (
@@ -40,7 +38,7 @@ export default function Page() {
                     </div>
 
                     {/* 🔔 알림 버튼 */}
-                    <AlertsButton onClick={() => setIsAlertsOpen(true)} />
+                    <AlertsButton alerts={d.alerts} />
                 </div>
             </div>
 
@@ -89,12 +87,7 @@ export default function Page() {
                 <p className="text-gray-500 mt-4">데이터 로딩 중...</p>
             )}
 
-            {/* 🔔 알림 모달 */}
-            <AlertsModal
-                open={isAlertsOpen}
-                onClose={() => setIsAlertsOpen(false)}
-                alerts={d.alerts}
-            />
+
         </div>
     );
 }
