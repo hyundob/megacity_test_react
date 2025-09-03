@@ -12,7 +12,9 @@ import DemandPredictChart from '../components/charts/DemandPredictChart';
 import EssStrategyCard from '../components/charts/EssStrategyCard';
 import CurtChart from '../components/charts/CurtChart';
 import HydrogenForecastChart from '../components/charts/HydrogenForecastChart';
+import ForecastLast48hChart from '../components/charts/ForecastLast48hChart';
 import HydrogenProductionCard from '../components/cards/HydrogenProductionCard';
+import KmaNowCard from '../components/cards/KmaNowCard';
 import AlertsButton from '../components/alerts/AlertsButton';
 import './globals.css';
 
@@ -59,6 +61,8 @@ export default function Page() {
                 {d.forecastPredict && <ForecastInfoCard data={d.forecastPredict} />}
                 {d.sukubOperation && <SukubInfoCard data={d.sukubOperation} />}
 
+                <KmaNowCard tempC={d.kmaTempC} windMs={d.kmaWindMs} />
+
                 <SolarPredictChart data={d.reGenPredictData} />
                 {d.demandPredict.length > 0 && <DemandPredictChart data={d.demandPredict} />}
 
@@ -81,6 +85,14 @@ export default function Page() {
                         totalItems={d.hgGenInfoToday.length}
                     />
                 )}
+                
+                {d.forecastPredictLast48h.length > 0 && (
+                    <div className="col-span-2">
+                        <ForecastLast48hChart data={d.forecastPredictLast48h} />
+                    </div>
+                )}
+
+                
             </div>
 
             {!d.forecastPredict && !d.sukubOperation && (

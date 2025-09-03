@@ -4,7 +4,7 @@ import {
     ForecastPredict, SukubOperation, SukubOperationItem, ReGenPredict, DemandPredict, JejuCurtPredict,
     HgGenPredict, HgGenInfo, EssPoint, ServiceHealth, AlertItem
 } from './types';
-import { buildEssSeriesFromData, topHours, msToHealth } from './utils';
+import { buildEssSeriesFromData, topHours, msToHealth, buildKmaLatestUrl } from './utils';
 
 export function useDashboardData() {
     // 원본/파생 상태
@@ -16,6 +16,7 @@ export function useDashboardData() {
     const [jejuCurtPredictToday, setJejuCurtPredictToday] = useState<JejuCurtPredict[]>([]);
     const [hgGenPredictToday, setHgGenPredictToday] = useState<HgGenPredict[]>([]);
     const [hgGenInfoToday, setHgGenInfoToday] = useState<HgGenInfo[]>([]);
+    const [forecastPredictLast48h, setForecastPredictLast48h] = useState<ForecastPredict[]>([]);
     const [essSeries, setEssSeries] = useState<EssPoint[]>([]);
     const [currentSoc, setCurrentSoc] = useState<number | null>(null);
     const [bestChrgTimes, setBestChrgTimes] = useState<string[]>([]);
@@ -39,6 +40,8 @@ export function useDashboardData() {
     const [healthDb, setHealthDb] = useState<ServiceHealth>('down');
     const [healthPredict, setHealthPredict] = useState<ServiceHealth>('down');
     const [hgGenLatency, setHgGenLatency] = useState<number | null>(null);
+    const [kmaTempC, setKmaTempC] = useState<number | null>(null);
+    const [kmaWindMs, setKmaWindMs] = useState<number | null>(null);
 
     const load = async () => {
         const [
@@ -123,6 +126,28 @@ export function useDashboardData() {
         setLastUpdated(new Date().toLocaleTimeString());
         setApiStatus('ok');
         setDbStatus(forecastPredictData && sukubOperationData ? 'ok' : 'error');
+
+        // 최근 48시간 예보는 별도로 가져오되 실패해도 대시보드 렌더는 계속
+        try {
+            const res = await fetch(ENDPOINTS.forecastPredictLast48h);
+            if (res.ok) {
+                const arr = (await res.json()) as ForecastPredict[];
+                const sorted = [...arr].sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
+                setForecastPredictLast48h(sorted);
+            }
+        } catch (_) {
+            // ignore
+        }
+
+        // KMA via Spring backend
+        try {
+            const res = await fetch(ENDPOINTS.jejuWeatherLatest, { cache: 'no-store' });
+            if (res.ok) {
+                const json = await res.json();
+                setKmaTempC(typeof json.tempC === 'number' ? json.tempC : null);
+                setKmaWindMs(typeof json.windMs === 'number' ? json.windMs : null);
+            }
+        } catch (_) { /* ignore */ }
     };
 
     useEffect(() => {
@@ -136,10 +161,12 @@ export function useDashboardData() {
     return {
         // 원본/파생
         forecastPredict, sukubOperation, reGenPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
+        forecastPredictLast48h,
         essSeries, currentSoc, bestChrgTimes, bestDiscTimes,
         hgGenUtilPct, hgGenLastItem,
         // 시스템/공용
         alerts, latApi, latDb, latPredict, healthApi, healthDb, healthPredict, hgGenLatency,
+        kmaTempC, kmaWindMs,
         lastUpdated, apiStatus, dbStatus,
     };
 }

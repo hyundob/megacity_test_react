@@ -33,3 +33,9 @@ export type HgGenInfo = { areaGrpCd: string; tm: string; hgenProd: number; hgenC
 export type ServiceHealth = 'ok' | 'slow' | 'down';
 
 export type AlertItem = { id: string; icon: 'warn' | 'bell'; title: string; desc: string; ago: string; };
+
+export type KmaNow = {
+    tm: string; // yyyymmddHHMM
+    tempC: number | null;
+    windMs: number | null;
+};
