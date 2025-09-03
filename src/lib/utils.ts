@@ -1,11 +1,62 @@
 import { EssPoint, ReGenPredict, ServiceHealth } from './types';
-import { KMA } from './api';
 
 export const formatTime = (raw: string) =>
     `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)} ${raw.slice(8, 10)}:${raw.slice(10, 12)}`;
 
 export const formatSoc = (v: number | null | undefined) =>
     typeof v === 'number' && !Number.isNaN(v) ? `${v}%` : '--%';
+
+// Convert wind direction degrees to compass direction and arrow
+export function formatWindDirection(degrees: number | null | undefined): { text: string; arrow: string } {
+    if (typeof degrees !== 'number' || Number.isNaN(degrees)) {
+        return { text: '--', arrow: '--' };
+    }
+    
+    // Normalize to 0-360 range
+    const normalized = ((degrees % 360) + 360) % 360;
+    
+    // 16-point compass directions
+    const directions = [
+        { name: '북', arrow: '↑', min: 348.75, max: 11.25 },
+        { name: '북북동', arrow: '↗', min: 11.25, max: 33.75 },
+        { name: '북동', arrow: '↗', min: 33.75, max: 56.25 },
+        { name: '동북동', arrow: '↗', min: 56.25, max: 78.75 },
+        { name: '동', arrow: '→', min: 78.75, max: 101.25 },
+        { name: '동남동', arrow: '↘', min: 101.25, max: 123.75 },
+        { name: '남동', arrow: '↘', min: 123.75, max: 146.25 },
+        { name: '남남동', arrow: '↘', min: 146.25, max: 168.75 },
+        { name: '남', arrow: '↓', min: 168.75, max: 191.25 },
+        { name: '남남서', arrow: '↙', min: 191.25, max: 213.75 },
+        { name: '남서', arrow: '↙', min: 213.75, max: 236.25 },
+        { name: '서남서', arrow: '↙', min: 236.25, max: 258.75 },
+        { name: '서', arrow: '←', min: 258.75, max: 281.25 },
+        { name: '서북서', arrow: '↖', min: 281.25, max: 303.75 },
+        { name: '북서', arrow: '↖', min: 303.75, max: 326.25 },
+        { name: '북북서', arrow: '↖', min: 326.25, max: 348.75 }
+    ];
+    
+    for (const dir of directions) {
+        if (normalized >= dir.min || normalized < dir.max) {
+            return { text: dir.name, arrow: dir.arrow };
+        }
+    }
+    
+    return { text: '북', arrow: '↑' }; // fallback
+}
+
+// Convert sky condition code to Korean text
+export function formatSkyCondition(skyCode: number | null | undefined): string {
+    if (typeof skyCode !== 'number' || Number.isNaN(skyCode)) {
+        return '--';
+    }
+    
+    switch (skyCode) {
+        case 1: return '맑음';
+        case 3: return '구름많음';
+        case 4: return '흐림';
+        default: return `코드${skyCode}`;
+    }
+}
 
 export function buildEssSeriesFromData(arr: ReGenPredict[]): EssPoint[] {
     if (!arr.length) return [];
@@ -19,30 +70,7 @@ export function buildEssSeriesFromData(arr: ReGenPredict[]): EssPoint[] {
 }
 
 // Build KMA short-term forecast (ultra) latest fetch URL for T1H (temp), WSD (wind)
-export function buildKmaLatestUrl(apiKey: string) {
-    const now = new Date();
-    // KMA requires base_time at HH30 or HH00; use the latest past half-hour block
-    const m = now.getMinutes();
-    if (m < 30) now.setMinutes(0, 0, 0); else now.setMinutes(30, 0, 0);
-    const y = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const HH = String(now.getHours()).padStart(2, '0');
-    const base_date = `${y}${mm}${dd}`;
-    const base_time = `${HH}${now.getMinutes().toString().padStart(2,'0')}`;
-    const params = new URLSearchParams({
-        serviceKey: apiKey,
-        dataType: 'JSON',
-        numOfRows: '200',
-        pageNo: '1',
-        base_date,
-        base_time,
-        nx: String(KMA.nx),
-        ny: String(KMA.ny),
-    });
-    // Ultra Short-term Nowcast
-    return `${KMA.baseUrl}/getUltraSrtNcst?${params.toString()}`;
-}
+// KMA utils removed (switch to backend endpoint)
 
 export function topHours(arr: EssPoint[], key: 'essChrg' | 'essDisc', k = 3): string[] {
     return [...arr].sort((a, b) => (b[key] ?? 0) - (a[key] ?? 0)).slice(0, k).map(p => p.hour);

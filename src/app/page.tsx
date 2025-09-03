@@ -61,7 +61,7 @@ export default function Page() {
                 {d.forecastPredict && <ForecastInfoCard data={d.forecastPredict} />}
                 {d.sukubOperation && <SukubInfoCard data={d.sukubOperation} />}
 
-                <KmaNowCard tempC={d.kmaTempC} windMs={d.kmaWindMs} />
+                <KmaNowCard tempC={d.ncstTempC} windMs={d.ncstWindMs} windDir={d.ncstWindDir} pty={d.ncstPty} ptyText={d.ncstPtyText} sky={d.ncstSky} />
 
                 <SolarPredictChart data={d.reGenPredictData} />
                 {d.demandPredict.length > 0 && <DemandPredictChart data={d.demandPredict} />}

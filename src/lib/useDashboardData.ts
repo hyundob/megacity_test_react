@@ -4,7 +4,7 @@ import {
     ForecastPredict, SukubOperation, SukubOperationItem, ReGenPredict, DemandPredict, JejuCurtPredict,
     HgGenPredict, HgGenInfo, EssPoint, ServiceHealth, AlertItem
 } from './types';
-import { buildEssSeriesFromData, topHours, msToHealth, buildKmaLatestUrl } from './utils';
+import { buildEssSeriesFromData, topHours, msToHealth } from './utils';
 
 export function useDashboardData() {
     // 원본/파생 상태
@@ -40,8 +40,12 @@ export function useDashboardData() {
     const [healthDb, setHealthDb] = useState<ServiceHealth>('down');
     const [healthPredict, setHealthPredict] = useState<ServiceHealth>('down');
     const [hgGenLatency, setHgGenLatency] = useState<number | null>(null);
-    const [kmaTempC, setKmaTempC] = useState<number | null>(null);
-    const [kmaWindMs, setKmaWindMs] = useState<number | null>(null);
+    const [ncstTempC, setNcstTempC] = useState<number | null>(null);
+    const [ncstWindMs, setNcstWindMs] = useState<number | null>(null);
+    const [ncstWindDir, setNcstWindDir] = useState<number | null>(null);
+    const [ncstPty, setNcstPty] = useState<number | null>(null);
+    const [ncstPtyText, setNcstPtyText] = useState<string | null>(null);
+    const [ncstSky, setNcstSky] = useState<number | null>(null);
 
     const load = async () => {
         const [
@@ -139,13 +143,19 @@ export function useDashboardData() {
             // ignore
         }
 
-        // KMA via Spring backend
+        // Weather via backend (nowcast + forecast)
         try {
-            const res = await fetch(ENDPOINTS.jejuWeatherLatest, { cache: 'no-store' });
+            const res = await fetch(ENDPOINTS.jejuWeatherCurrent, { cache: 'no-store' });
             if (res.ok) {
                 const json = await res.json();
-                setKmaTempC(typeof json.tempC === 'number' ? json.tempC : null);
-                setKmaWindMs(typeof json.windMs === 'number' ? json.windMs : null);
+                // NCST (실황) 데이터
+                setNcstTempC(typeof json.ncst_tempC === 'number' ? json.ncst_tempC : null);
+                setNcstWindMs(typeof json.ncst_windMs === 'number' ? json.ncst_windMs : null);
+                setNcstWindDir(typeof json.ncst_windDirDeg === 'number' ? json.ncst_windDirDeg : null);
+                setNcstPty(typeof json.ncst_ptyCode === 'number' ? json.ncst_ptyCode : null);
+                setNcstPtyText(typeof json.ncst_ptyText === 'string' ? json.ncst_ptyText : null);
+                // FCST (예보) 데이터 - 하늘상태
+                setNcstSky(typeof json.fcst_skyCode === 'number' ? json.fcst_skyCode : null);
             }
         } catch (_) { /* ignore */ }
     };
@@ -166,7 +176,7 @@ export function useDashboardData() {
         hgGenUtilPct, hgGenLastItem,
         // 시스템/공용
         alerts, latApi, latDb, latPredict, healthApi, healthDb, healthPredict, hgGenLatency,
-        kmaTempC, kmaWindMs,
+        ncstTempC, ncstWindMs, ncstWindDir, ncstPty, ncstPtyText, ncstSky,
         lastUpdated, apiStatus, dbStatus,
     };
 }
