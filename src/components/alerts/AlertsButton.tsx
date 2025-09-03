@@ -1,12 +1,35 @@
 import { Bell } from 'lucide-react';
 import { AlertItem } from '@/lib/types';
+import { useState, useEffect, useRef } from 'react';
 
 export default function AlertsButton({ alerts }: { alerts: AlertItem[] }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: Event) {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('touchstart', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isOpen]);
+
     return (
-        <div className="relative group">
+        <div className="relative" ref={containerRef}>
             <button
-                className="relative p-2 bg-white rounded-full shadow hover:bg-gray-50"
+                className="relative p-2 bg-white rounded-full shadow hover:bg-gray-50 active:bg-gray-100"
                 aria-label="알림 보기"
+                onClick={() => setIsOpen(!isOpen)}
             >
                 <Bell size={18} className="text-gray-600" />
                 {/* 새 알림 뱃지 */}
@@ -14,7 +37,9 @@ export default function AlertsButton({ alerts }: { alerts: AlertItem[] }) {
             </button>
             
             {/* 말풍선 */}
-            <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div className={`absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border transition-all duration-200 z-50 ${
+                isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+            }`}>
                 <div className="p-4">
                     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         🔔 실시간 알림

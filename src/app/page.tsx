@@ -23,20 +23,20 @@ export default function Page() {
     const getColor = (s: 'ok' | 'error') => (s === 'ok' ? 'green' : 'red');
 
     return (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
             {/* 상단 상태 바 + 알림 버튼 */}
-            <div className="bg-gray-100 rounded shadow p-4 flex items-center justify-between mb-4">
-                <div>
-                    ⏱ 마지막 업데이트: <strong>{d.lastUpdated || '로딩 중...'}</strong>
+            <div className="bg-gray-100 rounded shadow p-2 sm:p-4 flex items-center justify-between mb-4">
+                <div className="text-xs sm:text-sm flex-1 min-w-0">
+                    ⏱ <strong>{d.lastUpdated || '로딩 중...'}</strong>
                 </div>
-                <div className="flex gap-4 items-center">
+                <div className="flex gap-2 sm:gap-4 items-center flex-shrink-0">
                     <div className="flex items-center gap-1">
-                        <Circle size={14} color={getColor(d.apiStatus)} fill={getColor(d.apiStatus)} />
-                        <span>API</span>
+                        <Circle size={10} color={getColor(d.apiStatus)} fill={getColor(d.apiStatus)} />
+                        <span className="text-xs">API</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <Circle size={14} color={getColor(d.dbStatus)} fill={getColor(d.dbStatus)} />
-                        <span>DB</span>
+                        <Circle size={10} color={getColor(d.dbStatus)} fill={getColor(d.dbStatus)} />
+                        <span className="text-xs">DB</span>
                     </div>
 
                     {/* 🔔 알림 버튼 */}
@@ -44,8 +44,8 @@ export default function Page() {
                 </div>
             </div>
 
-            {/* 2열 그리드 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 1열 그리드 (모바일 우선) */}
+            <div className="flex flex-col lg:grid lg:grid-cols-2 gap-3 sm:gap-6">
                 {/* ✅ 기존 AlertsCard는 숨김 (원하면 삭제) */}
                 {/* <AlertsCard alerts={d.alerts} /> */}
 
