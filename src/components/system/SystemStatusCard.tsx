@@ -1,21 +1,34 @@
 import { ServiceHealth } from '@/lib/types';
 import { healthDot, healthText } from '@/lib/utils';
+import { Server, Database, Cpu } from 'lucide-react';
 
-function Item({ name, ms, health }: { name: string; ms: number | null; health: ServiceHealth }) {
+function Item({ name, ms, health, icon: Icon }: { name: string; ms: number | null; health: ServiceHealth; icon: any }) {
     return (
-        <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-2">
-                <span className={`inline-block w-2.5 h-2.5 rounded-full ${healthDot(health)}`} />
-                <span className="text-gray-800">{name}</span>
+        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-3 mb-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    health === 'ok' ? 'bg-green-100' : 
+                    health === 'slow' ? 'bg-yellow-100' : 'bg-red-100'
+                }`}>
+                    <Icon className={`w-4 h-4 ${
+                        health === 'ok' ? 'text-green-600' : 
+                        health === 'slow' ? 'text-yellow-600' : 'text-red-600'
+                    }`} />
+                </div>
+                <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800">{name}</h3>
+                    <p className="text-sm text-gray-500">{ms !== null ? `${ms}ms` : '—'}</p>
+                </div>
             </div>
-            <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-500">{ms !== null ? `${ms}ms` : '—'}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full border
-          ${health==='ok' ? 'bg-green-50 text-green-700 border-green-200' :
-                    health==='slow' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                        'bg-red-50 text-red-700 border-red-200'}`}>
-          {healthText(health)}
-        </span>
+            <div className="flex items-center justify-between">
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    health === 'ok' ? 'bg-green-100 text-green-700' :
+                    health === 'slow' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                }`}>
+                    {healthText(health)}
+                </span>
+                <div className={`w-2 h-2 rounded-full ${healthDot(health)}`} />
             </div>
         </div>
     );
@@ -27,18 +40,20 @@ export default function SystemStatusCard(props: {
 }) {
     const { latApi, latDb, latPredict, healthApi, healthDb, healthPredict } = props;
     return (
-        <div className="p-6 bg-white rounded-2xl shadow-md md:col-span-2">
-            <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xl font-bold text-gray-800">시스템 상태</h2>
-                <div className="flex items-center gap-2 text-gray-400">
-                    <button className="hover:text-gray-600" title="확대">⤢</button>
-                    <button className="hover:text-gray-600" title="더보기">⋯</button>
+        <div className="toss-card p-6 md:col-span-2">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center">
+                    <Server className="w-5 h-5 text-gray-500" />
+                </div>
+                <div>
+                    <h2 className="text-lg font-bold text-gray-800">시스템 상태</h2>
+                    <p className="text-sm text-gray-500">서비스 상태 및 응답 시간</p>
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Item name="API 서버" ms={latApi} health={healthApi} />
-                <Item name="데이터베이스" ms={latDb} health={healthDb} />
-                <Item name="예측 엔진" ms={latPredict} health={healthPredict} />
+                <Item name="API 서버" ms={latApi} health={healthApi} icon={Server} />
+                <Item name="데이터베이스" ms={latDb} health={healthDb} icon={Database} />
+                <Item name="예측 엔진" ms={latPredict} health={healthPredict} icon={Cpu} />
             </div>
         </div>
     );

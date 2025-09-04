@@ -23,29 +23,32 @@ export default function Page() {
     const getColor = (s: 'ok' | 'error') => (s === 'ok' ? 'green' : 'red');
 
     return (
-        <div className="p-2 sm:p-4">
-            {/* 상단 상태 바 + 알림 버튼 */}
-            <div className="bg-gray-100 rounded shadow p-2 sm:p-4 flex items-center justify-between mb-4">
-                <div className="text-xs sm:text-sm flex-1 min-w-0">
-                    ⏱ <strong>{d.lastUpdated || '로딩 중...'}</strong>
-                </div>
-                <div className="flex gap-2 sm:gap-4 items-center flex-shrink-0">
-                    <div className="flex items-center gap-1">
-                        <Circle size={10} color={getColor(d.apiStatus)} fill={getColor(d.apiStatus)} />
-                        <span className="text-xs">API</span>
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+            {/* 상단 헤더 */}
+            <div className="mb-6">
+                <div className="toss-card p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">메가시티 대시보드</h1>
+                            <p className="text-sm text-gray-500">마지막 업데이트: {d.lastUpdated || '로딩 중...'}</p>
+                        </div>
+                        <div className="flex gap-3 items-center flex-shrink-0">
+                            <div className={`toss-status ${d.apiStatus === 'ok' ? 'toss-status-success' : 'toss-status-error'}`}>
+                                <Circle size={8} fill="currentColor" />
+                                <span>API</span>
+                            </div>
+                            <div className={`toss-status ${d.dbStatus === 'ok' ? 'toss-status-success' : 'toss-status-error'}`}>
+                                <Circle size={8} fill="currentColor" />
+                                <span>DB</span>
+                            </div>
+                            <AlertsButton alerts={d.alerts} />
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <Circle size={10} color={getColor(d.dbStatus)} fill={getColor(d.dbStatus)} />
-                        <span className="text-xs">DB</span>
-                    </div>
-
-                    {/* 🔔 알림 버튼 */}
-                    <AlertsButton alerts={d.alerts} />
                 </div>
             </div>
 
-            {/* 1열 그리드 (모바일 우선) */}
-            <div className="flex flex-col lg:grid lg:grid-cols-2 gap-3 sm:gap-6">
+            {/* 메인 콘텐츠 그리드 */}
+            <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* ✅ 기존 AlertsCard는 숨김 (원하면 삭제) */}
                 {/* <AlertsCard alerts={d.alerts} /> */}
 
