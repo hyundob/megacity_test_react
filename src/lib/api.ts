@@ -15,5 +15,5 @@ export const ENDPOINTS = {
     jejuCurtPredictToday: 'http://210.222.202.14:18080/api/jeju-curt-predict/today',
     hgGenPredictToday: 'http://210.222.202.14:18080/api/hg-gen-predict/today',
     hgGenInfoToday: 'http://210.222.202.14:18080/api/hg-gen-info/today',
-    jejuWeatherCurrent: 'http://localhost:8080/api/jeju-weather/current',
+    jejuWeatherCurrent: 'http://210.222.202.14:18080/api/jeju-weather/current',
 };

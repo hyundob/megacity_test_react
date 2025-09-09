@@ -1,7 +1,7 @@
 import { ForecastPredict } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis,
-    Tooltip as RechartsTooltip, Legend
+    Tooltip as RechartsTooltip, Legend, Brush
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 
