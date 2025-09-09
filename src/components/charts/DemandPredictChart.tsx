@@ -32,10 +32,10 @@ export default function DemandPredictChart({ data }: { data: DemandPredict[] }) 
                         }} 
                     />
                     <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '13px' }} />
-                    <Line type="monotone" dataKey="fcstQgen" name="최종 수요예측" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="fcstQgen" name="최종 수요예측" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 5" dot={false} />
                     <Line type="monotone" dataKey="fcstQgmx" name="수요예측 최대" stroke="#f97316" strokeWidth={2} strokeDasharray="5 5" dot={false} />
                     <Line type="monotone" dataKey="fcstQgmn" name="수요예측 최소" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                    <Line type="monotone" dataKey="currPwrTot" name="실제 수요" stroke="#0ea5e9" strokeWidth={2} strokeDasharray="3 3" dot={false} />
+                    <Line type="monotone" dataKey="currPwrTot" name="실제 수요" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
             </ResponsiveContainer>
         </div>

@@ -9,10 +9,12 @@ import ForecastInfoCard from '../components/cards/ForecastInfoCard';
 import SukubInfoCard from '../components/cards/SukubInfoCard';
 import SolarPredictChart from '../components/charts/SolarPredictChart';
 import DemandPredictChart from '../components/charts/DemandPredictChart';
+import DemandReGenChart from '../components/charts/DemandReGenChart';
 import EssStrategyCard from '../components/charts/EssStrategyCard';
 import CurtChart from '../components/charts/CurtChart';
 import HydrogenForecastChart from '../components/charts/HydrogenForecastChart';
 import ForecastLast48hChart from '../components/charts/ForecastLast48hChart';
+import JejuOperationChart from '../components/charts/JejuOperationChart';
 import HydrogenProductionCard from '../components/cards/HydrogenProductionCard';
 import KmaNowCard from '../components/cards/KmaNowCard';
 import AlertsButton from '../components/alerts/AlertsButton';
@@ -62,19 +64,27 @@ export default function Page() {
                 />
 
                 {d.forecastPredict && <ForecastInfoCard data={d.forecastPredict} />}
-                {d.sukubOperation && <SukubInfoCard data={d.sukubOperation} />}
+                {d.sukubOperation && <SukubInfoCard data={d.sukubOperation} dailyData={d.sukubOperationToday} />}
+
+                {d.sukubOperationToday.length > 0 && (
+                    <JejuOperationChart data={d.sukubOperationToday} />
+                )}
 
                 <KmaNowCard tempC={d.ncstTempC} windMs={d.ncstWindMs} windDir={d.ncstWindDir} pty={d.ncstPty} ptyText={d.ncstPtyText} sky={d.ncstSky} />
 
                 <SolarPredictChart data={d.reGenPredictData} />
                 {d.demandPredict.length > 0 && <DemandPredictChart data={d.demandPredict} />}
+                
+                {d.demandPredict.length > 0 && d.reGenPredictData.length > 0 && (
+                    <DemandReGenChart demandData={d.demandPredict} reGenData={d.reGenPredictData} />
+                )}
 
-                <EssStrategyCard
+                {/* <EssStrategyCard
                     series={d.essSeries}
                     currentSoc={d.currentSoc}
                     bestChrgTimes={d.bestChrgTimes}
                     bestDiscTimes={d.bestDiscTimes}
-                />
+                /> */}
 
                 {d.jejuCurtPredictToday.length > 0 && <CurtChart data={d.jejuCurtPredictToday} />}
 
@@ -88,12 +98,14 @@ export default function Page() {
                         totalItems={d.hgGenInfoToday.length}
                     />
                 )}
+
                 
                 {d.forecastPredictLast48h.length > 0 && (
                     <div className="col-span-2">
                         <ForecastLast48hChart data={d.forecastPredictLast48h} />
                     </div>
                 )}
+
 
                 
             </div>

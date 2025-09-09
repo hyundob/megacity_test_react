@@ -39,8 +39,8 @@ export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
                         }}
                     />
                     <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '13px' }} />
-                    <Line yAxisId="left" type="monotone" dataKey="fcstMinpw" name="중앙급전 최소출력량 (MW/m2)" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                    <Line yAxisId="right" type="monotone" dataKey="fcstCurt" name="출력제어량 (MW/m2)" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    <Line yAxisId="left" type="monotone" dataKey="fcstMinpw" name="중앙급전 최소출력량 (MW/m2)" stroke="#3b82f6" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                    <Line yAxisId="right" type="monotone" dataKey="fcstCurt" name="출력제어량 (MW/m2)" stroke="#ef4444" strokeWidth={3} strokeDasharray="5 5" dot={false} />
                 </LineChart>
             </ResponsiveContainer>
         </div>

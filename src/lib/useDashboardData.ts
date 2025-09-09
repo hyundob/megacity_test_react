@@ -170,7 +170,7 @@ export function useDashboardData() {
 
     return {
         // 원본/파생
-        forecastPredict, sukubOperation, reGenPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
+        forecastPredict, sukubOperation, sukubOperationToday, reGenPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
         forecastPredictLast48h,
         essSeries, currentSoc, bestChrgTimes, bestDiscTimes,
         hgGenUtilPct, hgGenLastItem,
