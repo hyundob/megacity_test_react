@@ -22,13 +22,13 @@ export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
                 <LineChart data={rows} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
                     <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
-                    <YAxis yAxisId="left" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
-                    <YAxis yAxisId="right" orientation="right" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
+                    <YAxis yAxisId="left" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
+                    <YAxis yAxisId="right" orientation="right" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
                     <RechartsTooltip
                         formatter={(value: number, name: string) => {
-                            if (name.includes('최소출력')) return [`${value} MW/m2`, name];
-                            if (name.includes('출력제어')) return [`${value} MW/m2`, name];
-                            return [value, name];
+                            if (name.includes('최소출력')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW/m2`, name];
+                            if (name.includes('출력제어')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW/m2`, name];
+                            return [value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','), name];
                         }}
                         labelFormatter={(label) => `시간: ${label}`}
                         contentStyle={{ 

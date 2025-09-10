@@ -35,13 +35,13 @@ export default function HydrogenForecastChart({ data }: { data: HgGenPredict[] }
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
                     <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
-                    <YAxis yAxisId="left" unit=" MWh" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
-                    <YAxis yAxisId="right" orientation="right" unit=" MW" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
+                    <YAxis yAxisId="left" unit=" MWh" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
+                    <YAxis yAxisId="right" orientation="right" unit=" MW" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
                     <RechartsTooltip
                         formatter={(v: number, name: string) => {
-                            if (name.includes('최종생산량')) return [`${v} MWh`, name];
-                            if (name.includes('예측설비용량')) return [`${v} MW`, name];
-                            return [v, name];
+                            if (name.includes('최종생산량')) return [`${v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MWh`, name];
+                            if (name.includes('예측설비용량')) return [`${v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW`, name];
+                            return [v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','), name];
                         }}
                         labelFormatter={(label) => `시간: ${label}`}
                         contentStyle={{ 

@@ -125,7 +125,7 @@ export function useDashboardData() {
         setHgGenLastItem(last);
         const util = last && last.hgenCapa > 0 ? Math.round((last.hgenProd / last.hgenCapa) * 100) : null;
         setHgGenUtilPct(util);
-        setHgGenLatency(Number(((hgGenInfoWrap.ms) / 1000).toFixed(1)));
+        setHgGenLatency(Number(((hgGenInfoWrap.ms) / 1000).toFixed(2)));
 
         setLastUpdated(new Date().toLocaleTimeString());
         setApiStatus('ok');

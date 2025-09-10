@@ -22,14 +22,18 @@ export default function DemandPredictChart({ data }: { data: DemandPredict[] }) 
                 <LineChart data={rows} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
                     <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
-                    <YAxis unit=" MW" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
+                    <YAxis unit=" MW" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
                     <RechartsTooltip 
                         contentStyle={{ 
                             backgroundColor: 'white', 
                             border: '1px solid #e5e7eb', 
                             borderRadius: '12px',
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                        }} 
+                        }}
+                        formatter={(value: number, name: string) => [
+                            `${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW`, 
+                            name
+                        ]}
                     />
                     <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '13px' }} />
                     <Line type="monotone" dataKey="fcstQgen" name="최종 수요예측" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 5" dot={false} />

@@ -226,9 +226,9 @@ export default function Dashboard() {
             const gemData: GemToday[] = await gemWrap.res.json();
 
             // 시스템 상태 산출
-            setLatApi(Number(forecastWrap.ms.toFixed(0)));
-            setLatDb(Number(sukubWrap.ms.toFixed(0)));
-            setLatPredict(Number(predictWrap.ms.toFixed(0)));
+            setLatApi(Number(forecastWrap.ms.toFixed(2)));
+            setLatDb(Number(sukubWrap.ms.toFixed(2)));
+            setLatPredict(Number(predictWrap.ms.toFixed(2)));
             setHealthApi(msToHealth(true, forecastWrap.ms));
             setHealthDb(msToHealth(true, sukubWrap.ms));
             setHealthPredict(msToHealth(true, predictWrap.ms));
@@ -275,7 +275,7 @@ export default function Dashboard() {
             setGemLastItem(last);
             const util = last && last.hgenCapa > 0 ? Math.round((last.hgenProd / last.hgenCapa) * 100) : null;
             setGemUtilPct(util);
-            setGemLatency(Number(((gemWrap.ms) / 1000).toFixed(1)));
+            setGemLatency(Number(((gemWrap.ms) / 1000).toFixed(2)));
 
             setLastUpdated(new Date().toLocaleTimeString());
             setApiStatus('ok');

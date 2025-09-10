@@ -60,6 +60,7 @@ export default function DemandReGenChart({ demandData, reGenData }: DemandReGenC
                         domain={["auto","auto"]} 
                         axisLine={{ stroke: '#e5e7eb' }}
                         label={{ value: '전력량 (MW)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                        tickFormatter={(value) => value.toLocaleString()}
                     />
                     <RechartsTooltip 
                         contentStyle={{
@@ -69,7 +70,7 @@ export default function DemandReGenChart({ demandData, reGenData }: DemandReGenC
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         }}
                         formatter={(value: number, name: string) => [
-                            `${value.toFixed(1)} MW`, 
+                            `${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW`,
                             name
                         ]}
                     />

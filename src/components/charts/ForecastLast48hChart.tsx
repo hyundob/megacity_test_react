@@ -1,7 +1,7 @@
 import { ForecastPredict } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis,
-    Tooltip as RechartsTooltip, Legend, Brush
+    Tooltip as RechartsTooltip, Legend
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 
@@ -35,17 +35,23 @@ export default function ForecastLast48hChart({ data }: { data: ForecastPredict[]
                         axisLine={{ stroke: '#e5e7eb' }}
                     />
                     {/* 좌측 Y축: 기온(°C) */}
-                    <YAxis yAxisId="temp" orientation="left" tick={{ fontSize: 11, fill: '#6b7280' }} domain={["auto","auto"]} axisLine={{ stroke: '#e5e7eb' }} />
+                    <YAxis yAxisId="temp" orientation="left" tick={{ fontSize: 11, fill: '#6b7280' }} domain={["auto","auto"]} axisLine={{ stroke: '#e5e7eb' }} label={{ value: '기온(°C)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }} tickFormatter={(value) => value.toLocaleString()} />
                     {/* 우측 Y축1: 일사량 (W/m2) */}
-                    <YAxis yAxisId="srad" orientation="right" tick={{ fontSize: 11, fill: '#6b7280' }} domain={["auto","auto"]} axisLine={{ stroke: '#e5e7eb' }} />
+                    <YAxis yAxisId="srad" orientation="right" tick={{ fontSize: 11, fill: '#6b7280' }} domain={["auto","auto"]} axisLine={{ stroke: '#e5e7eb' }} label={{ value: '일사량(W/m²)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }} tickFormatter={(value) => value.toLocaleString()} />
                     {/* 우측 Y축2: 풍속 (m/s) - 우측 안쪽 */}
-                    <YAxis yAxisId="wspd" orientation="right" tick={{ fontSize: 11, fill: '#6b7280' }} domain={["auto","auto"]} width={0} />
+                    <YAxis yAxisId="wspd" orientation="right" tick={{ fontSize: 11, fill: '#6b7280' }} domain={["auto","auto"]} width={0} label={{ value: '풍속(m/s)', angle: 90, position: 'insideRight', offset: 20, style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }} tickFormatter={(value) => value.toLocaleString()} />
                     <RechartsTooltip 
                         contentStyle={{
                             backgroundColor: 'white',
                             border: '1px solid #e5e7eb',
                             borderRadius: '12px',
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        formatter={(value: number, name: string) => {
+                            if (name.includes('기온')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}°C`, name];
+                            if (name.includes('일사량')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} W/m²`, name];
+                            if (name.includes('풍속')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} m/s`, name];
+                            return [value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','), name];
                         }}
                     />
                     <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 40 }} />

@@ -18,27 +18,50 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
         const values = dailyData.map(d => d[key] as number).filter(v => typeof v === 'number');
         if (values.length === 0) return null;
         
-        const min = Math.min(...values);
-        const max = Math.max(...values);
-        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        const min = Math.round(Math.min(...values) * 100) / 100;
+        const max = Math.round(Math.max(...values) * 100) / 100;
+        const avg = Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 100) / 100;
         
-        return { min, max, avg, count: values.length };
+        // 최소/최대값의 인덱스 찾기
+        const minIndex = values.findIndex(v => v === min);
+        const maxIndex = values.findIndex(v => v === max);
+        
+        return { min, max, avg, count: values.length, minIndex, maxIndex };
     };
 
     const renderTooltip = (key: keyof SukubOperation, label: string) => {
         if (dailyData.length === 0) return null;
         
+        const stats = getDailyStats(key);
+        if (!stats) return null;
+        
         // 차트 데이터 준비
         const chartData = dailyData.map((item, index) => ({
             time: `${item.tm.slice(8, 10)}:${item.tm.slice(10, 12)}`,
             value: item[key] as number,
-            index
+            index,
+            isMin: false,
+            isMax: false
         })).filter(d => typeof d.value === 'number');
         
         if (chartData.length === 0) return null;
         
-        const stats = getDailyStats(key);
-        if (!stats) return null;
+        // 최소/최대값 표시 설정
+        chartData.forEach((d, idx) => {
+            if (idx === stats.minIndex) {
+                d.isMin = true;
+            }
+            if (idx === stats.maxIndex) {
+                d.isMax = true;
+            }
+        });
+        
+        // 최소/최대값만 별도 데이터로 생성
+        const minMaxData = chartData.map(d => ({
+            ...d,
+            minValue: d.isMin ? d.value : null,
+            maxValue: d.isMax ? d.value : null
+        }));
         
         return (
             <div className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 sm:p-6 w-[95vw] sm:w-[600px] sm:max-w-[90vw] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-h-[80vh] overflow-y-auto">
@@ -47,7 +70,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                 {/* 미니 차트 */}
                 <div className="h-24 sm:h-32 mb-3 sm:mb-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 6, right: 10, left: 35, bottom: 15 }}>
+                        <LineChart data={minMaxData} margin={{ top: 6, right: 10, left: 35, bottom: 15 }}>
                             <CartesianGrid strokeDasharray="1 1" stroke="#f1f3f4" />
                             <XAxis 
                                 dataKey="time" 
@@ -63,7 +86,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                                 axisLine={false}
                                 tickLine={false}
                                 width={30}
-                                tickFormatter={(value) => Math.round(value).toString()}
+                                tickFormatter={(value) => Math.round(value).toLocaleString()}
                                 tickCount={4}
                             />
                             <RechartsTooltip 
@@ -73,7 +96,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                                             <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-2 text-xs">
                                                 <div className="font-medium text-gray-800">{label}</div>
                                                 <div className="text-gray-600">
-                                                    {payload[0].value?.toFixed(1)} MW
+                                                    {payload[0].value?.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW
                                                 </div>
                                             </div>
                                         );
@@ -89,6 +112,22 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                                 dot={false}
                                 activeDot={{ r: 3, fill: getColorByKey(key) }}
                             />
+                            {/* 최소값 점 */}
+                            <Line 
+                                type="monotone" 
+                                dataKey="minValue"
+                                stroke="transparent"
+                                dot={{ r: 3, fill: '#ef4444', stroke: '#ef4444', strokeWidth: 1 }}
+                                connectNulls={false}
+                            />
+                            {/* 최대값 점 */}
+                            <Line 
+                                type="monotone" 
+                                dataKey="maxValue"
+                                stroke="transparent"
+                                dot={{ r: 3, fill: '#10b981', stroke: '#10b981', strokeWidth: 1 }}
+                                connectNulls={false}
+                            />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
@@ -97,15 +136,15 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                 <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex justify-between">
                         <span className="text-gray-600">최소:</span>
-                        <span className="font-medium">{stats.min.toFixed(1)} MW</span>
+                        <span className="font-medium">{stats.min.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-600">최대:</span>
-                        <span className="font-medium">{stats.max.toFixed(1)} MW</span>
+                        <span className="font-medium">{stats.max.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-600">평균:</span>
-                        <span className="font-medium">{stats.avg.toFixed(1)} MW</span>
+                        <span className="font-medium">{stats.avg.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-600">데이터:</span>
@@ -157,7 +196,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 font-medium">공급능력</div>
-                        <div className="text-lg font-bold text-blue-700">{data.suppAbility} MW</div>
+                        <div className="text-lg font-bold text-blue-700">{data.suppAbility.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'suppAbility' && renderTooltip('suppAbility', '공급능력')}
                 </div>
@@ -172,7 +211,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 font-medium">현재수요</div>
-                        <div className="text-lg font-bold text-red-700">{data.currPwrTot} MW</div>
+                        <div className="text-lg font-bold text-red-700">{data.currPwrTot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'currPwrTot' && renderTooltip('currPwrTot', '현재수요')}
                 </div>
@@ -187,7 +226,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 font-medium">신재생합계</div>
-                        <div className="text-lg font-bold text-green-700">{data.renewPwrTot} MW</div>
+                        <div className="text-lg font-bold text-green-700">{data.renewPwrTot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'renewPwrTot' && renderTooltip('renewPwrTot', '신재생합계')}
                 </div>
@@ -202,7 +241,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 font-medium">태양광합계</div>
-                        <div className="text-lg font-bold text-orange-700">{data.renewPwrSolar} MW</div>
+                        <div className="text-lg font-bold text-orange-700">{data.renewPwrSolar.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'renewPwrSolar' && renderTooltip('renewPwrSolar', '태양광합계')}
                 </div>
@@ -218,7 +257,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                 </div>
                 <div>
                     <div className="text-xs text-gray-500 font-medium">풍력합계</div>
-                    <div className="text-lg font-bold text-cyan-700">{data.renewPwrWind} MW</div>
+                    <div className="text-lg font-bold text-cyan-700">{data.renewPwrWind.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                 </div>
                 {hoveredItem === 'renewPwrWind' && renderTooltip('renewPwrWind', '풍력합계')}
             </div>
