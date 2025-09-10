@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Circle } from 'lucide-react';
+import { Circle, RefreshCw, Pause, Play } from 'lucide-react';
 import { useDashboardData } from '@/lib/useDashboardData';
 /* import AlertsCard from '../components/alerts/AlertsCard'; */
 import SystemStatusCard from '../components/system/SystemStatusCard';
@@ -10,7 +10,6 @@ import SukubInfoCard from '../components/cards/SukubInfoCard';
 import SolarPredictChart from '../components/charts/SolarPredictChart';
 import DemandPredictChart from '../components/charts/DemandPredictChart';
 import DemandReGenChart from '../components/charts/DemandReGenChart';
-import EssStrategyCard from '../components/charts/EssStrategyCard';
 import CurtChart from '../components/charts/CurtChart';
 import HydrogenForecastChart from '../components/charts/HydrogenForecastChart';
 import ForecastLast48hChart from '../components/charts/ForecastLast48hChart';
@@ -23,6 +22,14 @@ import './globals.css';
 export default function Page() {
     const d = useDashboardData();
     const getColor = (s: 'ok' | 'error') => (s === 'ok' ? 'green' : 'red');
+
+    const handleToggleAutoRefresh = () => {
+        d.setAutoRefresh(!d.autoRefresh);
+    };
+
+    const handleManualRefresh = () => {
+        d.load();
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
@@ -43,6 +50,33 @@ export default function Page() {
                                 <Circle size={8} fill="currentColor" />
                                 <span>DB</span>
                             </div>
+                            
+                            {/* 자동 새로고침 토글 버튼 */}
+                            <button
+                                onClick={handleToggleAutoRefresh}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    d.autoRefresh 
+                                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                                title={d.autoRefresh ? '자동 새로고침 켜짐 (5분마다)' : '자동 새로고침 꺼짐'}
+                            >
+                                {d.autoRefresh ? <Play size={16} /> : <Pause size={16} />}
+                                <span className="hidden sm:inline">
+                                    {d.autoRefresh ? '자동' : '수동'}
+                                </span>
+                            </button>
+                            
+                            {/* 수동 새로고침 버튼 */}
+                            <button
+                                onClick={handleManualRefresh}
+                                className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+                                title="지금 새로고침"
+                            >
+                                <RefreshCw size={16} />
+                                <span className="hidden sm:inline">새로고침</span>
+                            </button>
+                            
                             <AlertsButton alerts={d.alerts} />
                         </div>
                     </div>

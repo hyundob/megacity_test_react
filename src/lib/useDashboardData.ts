@@ -27,6 +27,15 @@ export function useDashboardData() {
     const [lastUpdated, setLastUpdated] = useState('');
     const [apiStatus, setApiStatus] = useState<'ok' | 'error'>('error');
     const [dbStatus, setDbStatus] = useState<'ok' | 'error'>('error');
+    
+    // 자동 새로고침 상태 관리
+    const [autoRefresh, setAutoRefresh] = useState<boolean>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('dashboard-auto-refresh');
+            return saved !== null ? JSON.parse(saved) : true;
+        }
+        return true;
+    });
 
     // 시스템 상태
     const [alerts] = useState<AlertItem[]>([
@@ -160,13 +169,27 @@ export function useDashboardData() {
         } catch (_) { /* ignore */ }
     };
 
+    // 자동 새로고침 상태 저장
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('dashboard-auto-refresh', JSON.stringify(autoRefresh));
+        }
+    }, [autoRefresh]);
+
     useEffect(() => {
         (async () => {
             try { await load(); } catch (e) { setApiStatus('error'); setDbStatus('error'); }
         })();
-        const id = setInterval(load, 5 * 60 * 1000);
-        return () => clearInterval(id);
-    }, []);
+        
+        let id: NodeJS.Timeout | null = null;
+        if (autoRefresh) {
+            id = setInterval(load, 5 * 60 * 1000);
+        }
+        
+        return () => {
+            if (id) clearInterval(id);
+        };
+    }, [autoRefresh]);
 
     return {
         // 원본/파생
@@ -178,5 +201,7 @@ export function useDashboardData() {
         alerts, latApi, latDb, latPredict, healthApi, healthDb, healthPredict, hgGenLatency,
         ncstTempC, ncstWindMs, ncstWindDir, ncstPty, ncstPtyText, ncstSky,
         lastUpdated, apiStatus, dbStatus,
+        // 자동 새로고침
+        autoRefresh, setAutoRefresh, load,
     };
 }

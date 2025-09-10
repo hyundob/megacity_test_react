@@ -1,4 +1,4 @@
-import { HgGenPredict } from '../../lib/types';
+import { HgGenPredict } from '@/lib/types';
 import {
     ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend

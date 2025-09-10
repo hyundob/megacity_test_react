@@ -1,5 +1,5 @@
-import { SukubOperation, SukubOperationItem } from '../../lib/types';
-import { formatTime } from '../../lib/utils';
+import { SukubOperation, SukubOperationItem } from '@/lib/types';
+import { formatTime } from '@/lib/utils';
 import { Zap, Activity, Sun, Wind, Battery } from 'lucide-react';
 import { useState } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
@@ -22,9 +22,21 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
         const max = Math.round(Math.max(...values) * 100) / 100;
         const avg = Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 100) / 100;
         
-        // 최소/최대값의 인덱스 찾기
-        const minIndex = values.findIndex(v => v === min);
-        const maxIndex = values.findIndex(v => v === max);
+        // 최소/최대값의 실제 dailyData 인덱스 찾기
+        let minIndex = -1;
+        let maxIndex = -1;
+        
+        for (let i = 0; i < dailyData.length; i++) {
+            const value = dailyData[i][key] as number;
+            if (typeof value === 'number') {
+                if (Math.round(value * 100) / 100 === min && minIndex === -1) {
+                    minIndex = i;
+                }
+                if (Math.round(value * 100) / 100 === max && maxIndex === -1) {
+                    maxIndex = i;
+                }
+            }
+        }
         
         return { min, max, avg, count: values.length, minIndex, maxIndex };
     };
@@ -46,12 +58,12 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
         
         if (chartData.length === 0) return null;
         
-        // 최소/최대값 표시 설정
-        chartData.forEach((d, idx) => {
-            if (idx === stats.minIndex) {
+        // 최소/최대값 표시 설정 (실제 dailyData 인덱스 기준)
+        chartData.forEach((d) => {
+            if (d.index === stats.minIndex) {
                 d.isMin = true;
             }
-            if (idx === stats.maxIndex) {
+            if (d.index === stats.maxIndex) {
                 d.isMax = true;
             }
         });
