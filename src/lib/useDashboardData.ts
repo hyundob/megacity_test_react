@@ -29,13 +29,8 @@ export function useDashboardData() {
     const [dbStatus, setDbStatus] = useState<'ok' | 'error'>('error');
     
     // 자동 새로고침 상태 관리
-    const [autoRefresh, setAutoRefresh] = useState<boolean>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('dashboard-auto-refresh');
-            return saved !== null ? JSON.parse(saved) : true;
-        }
-        return true;
-    });
+    const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+    const [isClient, setIsClient] = useState(false);
 
     // 시스템 상태
     const [alerts] = useState<AlertItem[]>([
@@ -148,7 +143,7 @@ export function useDashboardData() {
                 const sorted = [...arr].sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
                 setForecastPredictLast48h(sorted);
             }
-        } catch (_) {
+        } catch {
             // ignore
         }
 
@@ -166,19 +161,29 @@ export function useDashboardData() {
                 // FCST (예보) 데이터 - 하늘상태
                 setNcstSky(typeof json.fcst_skyCode === 'number' ? json.fcst_skyCode : null);
             }
-        } catch (_) { /* ignore */ }
+        } catch { /* ignore */ }
     };
+
+    // 클라이언트에서 localStorage 값 복원
+    useEffect(() => {
+        setIsClient(true);
+        const saved = localStorage.getItem('dashboard-auto-refresh');
+        if (saved !== null) {
+            setAutoRefresh(JSON.parse(saved));
+        }
+    }, []);
 
     // 자동 새로고침 상태 저장
     useEffect(() => {
-        if (typeof window !== 'undefined') {
+        if (isClient) {
             localStorage.setItem('dashboard-auto-refresh', JSON.stringify(autoRefresh));
         }
-    }, [autoRefresh]);
+    }, [autoRefresh, isClient]);
+
 
     useEffect(() => {
         (async () => {
-            try { await load(); } catch (e) { setApiStatus('error'); setDbStatus('error'); }
+            try { await load(); } catch { setApiStatus('error'); setDbStatus('error'); }
         })();
         
         let id: NodeJS.Timeout | null = null;
@@ -202,6 +207,6 @@ export function useDashboardData() {
         ncstTempC, ncstWindMs, ncstWindDir, ncstPty, ncstPtyText, ncstSky,
         lastUpdated, apiStatus, dbStatus,
         // 자동 새로고침
-        autoRefresh, setAutoRefresh, load,
+        autoRefresh, setAutoRefresh, load, isClient,
     };
 }

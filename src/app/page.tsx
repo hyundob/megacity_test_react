@@ -21,7 +21,6 @@ import './globals.css';
 
 export default function Page() {
     const d = useDashboardData();
-    const getColor = (s: 'ok' | 'error') => (s === 'ok' ? 'green' : 'red');
 
     const handleToggleAutoRefresh = () => {
         d.setAutoRefresh(!d.autoRefresh);
@@ -30,6 +29,7 @@ export default function Page() {
     const handleManualRefresh = () => {
         d.load();
     };
+
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
