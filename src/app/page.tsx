@@ -85,7 +85,6 @@ export default function Page() {
 
             {/* 메인 콘텐츠 그리드 */}
             <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
-                {/* ✅ 기존 AlertsCard는 숨김 (원하면 삭제) */}
                 {/* <AlertsCard alerts={d.alerts} /> */}
 
                 <SystemStatusCard
