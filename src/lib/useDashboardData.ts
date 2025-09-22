@@ -7,7 +7,6 @@ import {
 import { buildEssSeriesFromData, topHours, msToHealth } from './utils';
 
 export function useDashboardData() {
-    // 원본/파생 상태
     const [forecastPredict, setForecastPredict] = useState<ForecastPredict | null>(null);
     const [sukubOperation, setSukubOperation] = useState<SukubOperation | null>(null);
     const [sukubOperationToday, setSukubOperationToday] = useState<SukubOperationItem[]>([]);
