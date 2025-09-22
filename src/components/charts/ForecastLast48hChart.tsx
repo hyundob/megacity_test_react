@@ -55,9 +55,9 @@ export default function ForecastLast48hChart({ data }: { data: ForecastPredict[]
                         }}
                     />
                     <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 40 }} />
-                    <Line yAxisId="temp" type="monotone" dataKey="fcstTemp" name="기온(°C)" stroke="#ef4444" strokeWidth={3} dot={false} />
-                    <Line yAxisId="srad" type="monotone" dataKey="fcstSrad" name="일사량(W/m2)" stroke="#f59e0b" strokeWidth={3} dot={false} />
-                    <Line yAxisId="wspd" type="monotone" dataKey="fcstWspd" name="풍속(m/s)" stroke="#3b82f6" strokeWidth={3} dot={false} />
+                    <Line yAxisId="temp" type="monotone" dataKey="fcstTemp" name="기온(°C)" stroke="#ef4444" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                    <Line yAxisId="srad" type="monotone" dataKey="fcstSrad" name="일사량(W/m2)" stroke="#f59e0b" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                    <Line yAxisId="wspd" type="monotone" dataKey="fcstWspd" name="풍속(m/s)" stroke="#3b82f6" strokeWidth={3} strokeDasharray="5 5" dot={false} />
                 </LineChart>
             </ResponsiveContainer>
         </div>

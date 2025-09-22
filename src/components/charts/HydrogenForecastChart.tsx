@@ -52,8 +52,8 @@ export default function HydrogenForecastChart({ data }: { data: HgGenPredict[] }
                         }}
                     />
                     <Legend verticalAlign="top" height={32} wrapperStyle={{ fontSize: '13px' }} />
-                    <Area yAxisId="left" type="monotone" dataKey="fcstQgen" name="최종생산량(MWh)" stroke="#f59e0b" fill="url(#gradQgen)" strokeWidth={3} activeDot={{ r: 5 }} />
-                    <Area yAxisId="right" type="monotone" dataKey="fcstCapa" name="예측설비용량(MW)" stroke="#60a5fa" fill="url(#gradCapa)" strokeWidth={3} />
+                    <Area yAxisId="left" type="monotone" dataKey="fcstQgen" name="최종생산량(MWh)" stroke="#f59e0b" fill="url(#gradQgen)" strokeWidth={3} strokeDasharray="5 5" activeDot={{ r: 5 }} />
+                    <Area yAxisId="right" type="monotone" dataKey="fcstCapa" name="예측설비용량(MW)" stroke="#60a5fa" fill="url(#gradCapa)" strokeWidth={3} strokeDasharray="5 5" />
                 </AreaChart>
             </ResponsiveContainer>
         </div>
