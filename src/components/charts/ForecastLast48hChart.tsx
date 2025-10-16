@@ -5,20 +5,49 @@ import {
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 
-export default function ForecastLast48hChart({ data }: { data: ForecastPredict[] }) {
+interface ForecastLast48hChartProps {
+    data: ForecastPredict[];
+    areaGrpId?: string;
+    areaGrpIds: string[];
+    selectedAreaGrpId: string;
+    onAreaGrpIdChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+}
+
+export default function ForecastLast48hChart({ data, areaGrpId, areaGrpIds, selectedAreaGrpId, onAreaGrpIdChange }: ForecastLast48hChartProps) {
     const rows = data.map(d => ({
         ...d,
         hour: `${d.fcstTm.slice(4,6)}/${d.fcstTm.slice(6,8)} ${d.fcstTm.slice(8,10)}:00`,
     }));
     return (
         <div className="toss-card p-6">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-green-500" />
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-green-500" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-800">
+                            최근 48시간 기상예보
+                            {areaGrpId && <span className="ml-2 text-sm text-blue-600">({areaGrpId})</span>}
+                        </h2>
+                        <p className="text-sm text-gray-500">기온/일사량/풍속 추이</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800">최근 48시간 기상예보</h2>
-                    <p className="text-sm text-gray-500">기온/일사량/풍속 추이</p>
+                <div className="flex items-center gap-3">
+                    <label className="text-sm font-medium text-gray-700">영역 선택:</label>
+                    {areaGrpIds.length > 0 ? (
+                        <select
+                            value={selectedAreaGrpId}
+                            onChange={onAreaGrpIdChange}
+                            className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                        >
+                            {areaGrpIds.map((id, index) => (
+                                <option key={`${id}-${index}`} value={id}>{id}</option>
+                            ))}
+                        </select>
+                    ) : (
+                        <div className="text-sm text-red-500">영역 그룹 데이터 없음</div>
+                    )}
                 </div>
             </div>
             <ResponsiveContainer width="100%" height={380}>

@@ -21,6 +21,7 @@ import './globals.css';
 
 export default function Page() {
     const d = useDashboardData();
+    const [selectedAreaGrpId, setSelectedAreaGrpId] = React.useState<string>('');
 
     const handleToggleAutoRefresh = () => {
         d.setAutoRefresh(!d.autoRefresh);
@@ -29,6 +30,29 @@ export default function Page() {
     const handleManualRefresh = () => {
         d.load();
     };
+
+    const handleAreaGrpIdChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedAreaGrpId(e.target.value);
+    };
+
+    // areaGrpId 목록 추출 (중복 제거)
+    const areaGrpIds = React.useMemo(() => {
+        const ids = new Set(d.forecastPredictLast48h.map(item => item.areaGrpId).filter(Boolean));
+        return Array.from(ids).sort();
+    }, [d.forecastPredictLast48h]);
+
+    // 첫 번째 영역을 기본값으로 설정
+    React.useEffect(() => {
+        if (areaGrpIds.length > 0 && !selectedAreaGrpId) {
+            setSelectedAreaGrpId(areaGrpIds[0]);
+        }
+    }, [areaGrpIds, selectedAreaGrpId]);
+
+    // 선택된 areaGrpId로 필터링
+    const filteredData = React.useMemo(() => {
+        if (!selectedAreaGrpId) return [];
+        return d.forecastPredictLast48h.filter(item => item.areaGrpId === selectedAreaGrpId);
+    }, [d.forecastPredictLast48h, selectedAreaGrpId]);
 
 
     return (
@@ -96,20 +120,60 @@ export default function Page() {
                     healthPredict={d.healthPredict}
                 />
 
-                {d.forecastPredict && <ForecastInfoCard data={d.forecastPredict} />}
-                {d.sukubOperation && <SukubInfoCard data={d.sukubOperation} dailyData={d.sukubOperationToday} />}
+                {d.forecastPredict ? (
+                    <ForecastInfoCard data={d.forecastPredict} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">기상 예보 정보</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
+                )}
 
-                {d.sukubOperationToday.length > 0 && (
+                {d.sukubOperation ? (
+                    <SukubInfoCard data={d.sukubOperation} dailyData={d.sukubOperationToday} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">제주 수급 운영 정보</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
+                )}
+
+                {d.sukubOperationToday.length > 0 ? (
                     <JejuOperationChart data={d.sukubOperationToday} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">제주 운영 현황</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
                 )}
 
                 <KmaNowCard tempC={d.ncstTempC} windMs={d.ncstWindMs} windDir={d.ncstWindDir} pty={d.ncstPty} ptyText={d.ncstPtyText} sky={d.ncstSky} />
 
-                <SolarPredictChart data={d.reGenPredictData} />
-                {d.demandPredict.length > 0 && <DemandPredictChart data={d.demandPredict} />}
+                {d.reGenPredictData.length > 0 ? (
+                    <SolarPredictChart data={d.reGenPredictData} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">태양광 발전 예측</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
+                )}
+
+                {d.demandPredict.length > 0 ? (
+                    <DemandPredictChart data={d.demandPredict} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">전력 수요 예측</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
+                )}
                 
-                {d.demandPredict.length > 0 && d.reGenPredictData.length > 0 && (
+                {d.demandPredict.length > 0 && d.reGenPredictData.length > 0 ? (
                     <DemandReGenChart demandData={d.demandPredict} reGenData={d.reGenPredictData} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">수요 vs 재생에너지</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
                 )}
 
                 {/* <EssStrategyCard
@@ -119,23 +183,55 @@ export default function Page() {
                     bestDiscTimes={d.bestDiscTimes}
                 /> */}
 
-                {d.jejuCurtPredictToday.length > 0 && <CurtChart data={d.jejuCurtPredictToday} />}
+                {d.jejuCurtPredictToday.length > 0 ? (
+                    <CurtChart data={d.jejuCurtPredictToday} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">제주 출력제어 예측</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
+                )}
 
-                {d.hgGenPredictToday.length > 0 && <HydrogenForecastChart data={d.hgGenPredictToday} />}
+                {d.hgGenPredictToday.length > 0 ? (
+                    <HydrogenForecastChart data={d.hgGenPredictToday} />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">수소 생산 예측</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
+                )}
 
-                {d.hgGenLastItem && (
+                {d.hgGenLastItem ? (
                     <HydrogenProductionCard
                         lastItem={d.hgGenLastItem}
                         utilPct={d.hgGenUtilPct}
                         latency={d.hgGenLatency}
                         totalItems={d.hgGenInfoToday.length}
                     />
+                ) : (
+                    <div className="toss-card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">수소 생산 현황</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
                 )}
 
                 
-                {d.forecastPredictLast48h.length > 0 && (
+                {d.forecastPredictLast48h.length > 0 ? (
                     <div className="col-span-2">
-                        <ForecastLast48hChart data={d.forecastPredictLast48h} />
+                        <ForecastLast48hChart 
+                            data={filteredData} 
+                            areaGrpId={selectedAreaGrpId}
+                            areaGrpIds={areaGrpIds}
+                            selectedAreaGrpId={selectedAreaGrpId}
+                            onAreaGrpIdChange={handleAreaGrpIdChange}
+                        />
+                    </div>
+                ) : (
+                    <div className="col-span-2">
+                        <div className="toss-card p-6">
+                            <h2 className="text-lg font-bold text-gray-800 mb-2">최근 48시간 기상예보</h2>
+                            <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                        </div>
                     </div>
                 )}
 

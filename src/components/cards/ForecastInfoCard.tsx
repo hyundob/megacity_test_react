@@ -33,7 +33,7 @@ export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">일사량</div>
-                        <div className="text-lg font-bold text-orange-700 dark:text-orange-300">{data.fcstSrad.toFixed(1)} W/m²</div>
+                        <div className="text-lg font-bold text-orange-700 dark:text-orange-300">{data.fcstSrad?.toFixed(1) ?? 'N/A'} W/m²</div>
                     </div>
                 </div>
                 
@@ -43,7 +43,7 @@ export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">기온</div>
-                        <div className="text-lg font-bold text-red-700 dark:text-red-300">{data.fcstTemp.toFixed(1)}°C</div>
+                        <div className="text-lg font-bold text-red-700 dark:text-red-300">{data.fcstTemp?.toFixed(1) ?? 'N/A'}°C</div>
                     </div>
                 </div>
                 
@@ -53,7 +53,7 @@ export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">습도</div>
-                        <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{data.fcstHumi.toFixed(1)}%</div>
+                        <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{data.fcstHumi?.toFixed(1) ?? 'N/A'}%</div>
                     </div>
                 </div>
                 
@@ -63,7 +63,7 @@ export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">풍속</div>
-                        <div className="text-lg font-bold text-green-700 dark:text-green-300">{data.fcstWspd.toFixed(1)} m/s</div>
+                        <div className="text-lg font-bold text-green-700 dark:text-green-300">{data.fcstWspd?.toFixed(1) ?? 'N/A'} m/s</div>
                     </div>
                 </div>
             </div>
@@ -74,7 +74,7 @@ export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
                 </div>
                 <div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">기압</div>
-                    <div className="text-lg font-bold text-gray-700 dark:text-gray-300">{data.fcstPsfc.toFixed(1)} hPa</div>
+                    <div className="text-lg font-bold text-gray-700 dark:text-gray-300">{data.fcstPsfc?.toFixed(1) ?? 'N/A'} hPa</div>
                 </div>
             </div>
         </div>

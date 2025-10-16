@@ -1,6 +1,6 @@
 // 공용 타입
 export type ForecastPredict = {
-    crtnTm: string; fcstTm: string; fcstSrad: number; fcstTemp: number;
+    crtnTm: string; fcstTm: string; areaGrpId: string; fcstSrad: number; fcstTemp: number;
     fcstHumi: number; fcstWspd: number; fcstPsfc: number;
 };
 
