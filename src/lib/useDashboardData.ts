@@ -11,6 +11,7 @@ export function useDashboardData() {
     const [sukubOperation, setSukubOperation] = useState<SukubOperation | null>(null);
     const [sukubOperationToday, setSukubOperationToday] = useState<SukubOperationItem[]>([]);
     const [reGenPredictData, setReGenPredictData] = useState<ReGenPredict[]>([]);
+    const [windPredictData, setWindPredictData] = useState<ReGenPredict[]>([]);
     const [demandPredict, setDemandPredict] = useState<DemandPredict[]>([]);
     const [jejuCurtPredictToday, setJejuCurtPredictToday] = useState<JejuCurtPredict[]>([]);
     const [hgGenPredictToday, setHgGenPredictToday] = useState<HgGenPredict[]>([]);
@@ -55,12 +56,12 @@ export function useDashboardData() {
             forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
             sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap,
         ] = await Promise.all([
-            fetchWithTiming(ENDPOINTS.forecastPredict),
+            fetchWithTiming(ENDPOINTS.forecastPredictLatest),
             fetchWithTiming(ENDPOINTS.sukubOperationLatest),
-            fetchWithTiming(ENDPOINTS.reGenPredictChart),
-            fetchWithTiming(ENDPOINTS.demandPredictToday),
-            fetchWithTiming(ENDPOINTS.sukubOperationToday),
-            fetchWithTiming(ENDPOINTS.jejuCurtPredictToday),
+            fetchWithTiming(ENDPOINTS.reGenPredictLatestCrtn),
+            fetchWithTiming(ENDPOINTS.demandPredictLatestCrtn),
+            fetchWithTiming(ENDPOINTS.sukubOperationLast24h),
+            fetchWithTiming(ENDPOINTS.jejuCurtPredictLatestCrtn),
             fetchWithTiming(ENDPOINTS.hgGenPredictToday),
             fetchWithTiming(ENDPOINTS.hgGenInfoToday),
         ]);
@@ -96,9 +97,7 @@ export function useDashboardData() {
             .filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL')
             .sort((a, b) => a.tm.localeCompare(b.tm));
 
-        (reGenPredict as ReGenPredict[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-        (demandPredictData as DemandPredict[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-        (jejuCurtPredictData as JejuCurtPredict[]).sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
+        // reGenPredict, demandPredict, jejuCurtPredict는 이미 시간순 정렬되어 옴
 
         // 상태 반영
         setForecastPredict(forecastPredictData as ForecastPredict);
@@ -109,9 +108,11 @@ export function useDashboardData() {
         setHgGenPredictToday(hgGenPredictFilter);
         setHgGenInfoToday(hgGenInfoFilter);
 
-        // 병합
+        // 병합 - 날짜+시간(YYYYMMDDHH)으로 정확하게 매칭
         setDemandPredict((demandPredictData as DemandPredict[]).map(item => {
-            const matched = (sukubOperationTodayData as SukubOperationItem[]).find(s => s.tm.slice(8,10) === item.fcstTm.slice(8,10));
+            const matched = (sukubOperationTodayData as SukubOperationItem[]).find(
+                s => s.tm.slice(0, 10) === item.fcstTm.slice(0, 10) // YYYYMMDDHH 비교
+            );
             return { ...item, currPwrTot: matched?.currPwrTot ?? null };
         }));
 
@@ -161,6 +162,17 @@ export function useDashboardData() {
                 setNcstSky(typeof json.fcst_skyCode === 'number' ? json.fcst_skyCode : null);
             }
         } catch { /* ignore */ }
+
+        // 풍력 발전 예측 (별도 조회)
+        try {
+            const res = await fetch(ENDPOINTS.windPredictLatestCrtn);
+            if (res.ok) {
+                const arr = (await res.json()) as ReGenPredict[];
+                setWindPredictData(arr);
+            }
+        } catch {
+            // ignore
+        }
     };
 
     // 클라이언트에서 localStorage 값 복원
@@ -197,7 +209,7 @@ export function useDashboardData() {
 
     return {
         // 원본/파생
-        forecastPredict, sukubOperation, sukubOperationToday, reGenPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
+        forecastPredict, sukubOperation, sukubOperationToday, reGenPredictData, windPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
         forecastPredictLast48h,
         essSeries, currentSoc, bestChrgTimes, bestDiscTimes,
         hgGenUtilPct, hgGenLastItem,

@@ -17,6 +17,7 @@ import JejuOperationChart from '../components/charts/JejuOperationChart';
 import HydrogenProductionCard from '../components/cards/HydrogenProductionCard';
 import KmaNowCard from '../components/cards/KmaNowCard';
 import AlertsButton from '../components/alerts/AlertsButton';
+import WindPredictChart from '../components/charts/WindPredictChart';
 import './globals.css';
 
 export default function Page() {
@@ -59,18 +60,18 @@ export default function Page() {
         <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
             {/* 상단 헤더 */}
             <div className="mb-6">
-                <div className="toss-card p-4 sm:p-6">
+                <div className="card p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                             <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">메가시티 대시보드</h1>
                             <p className="text-sm text-gray-500">마지막 업데이트: {d.lastUpdated || '로딩 중...'}</p>
                         </div>
                         <div className="flex gap-3 items-center flex-shrink-0">
-                            <div className={`toss-status ${d.apiStatus === 'ok' ? 'toss-status-success' : 'toss-status-error'}`}>
+                            <div className={`status-badge ${d.apiStatus === 'ok' ? 'status-badge-success' : 'status-badge-error'}`}>
                                 <Circle size={8} fill="currentColor" />
                                 <span>API</span>
                             </div>
-                            <div className={`toss-status ${d.dbStatus === 'ok' ? 'toss-status-success' : 'toss-status-error'}`}>
+                            <div className={`status-badge ${d.dbStatus === 'ok' ? 'status-badge-success' : 'status-badge-error'}`}>
                                 <Circle size={8} fill="currentColor" />
                                 <span>DB</span>
                             </div>
@@ -123,7 +124,7 @@ export default function Page() {
                 {d.forecastPredict ? (
                     <ForecastInfoCard data={d.forecastPredict} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">기상 예보 정보</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -132,7 +133,7 @@ export default function Page() {
                 {d.sukubOperation ? (
                     <SukubInfoCard data={d.sukubOperation} dailyData={d.sukubOperationToday} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">제주 수급 운영 정보</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -141,7 +142,7 @@ export default function Page() {
                 {d.sukubOperationToday.length > 0 ? (
                     <JejuOperationChart data={d.sukubOperationToday} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">제주 운영 현황</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -152,7 +153,7 @@ export default function Page() {
                 {d.reGenPredictData.length > 0 ? (
                     <SolarPredictChart data={d.reGenPredictData} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">태양광 발전 예측</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -161,16 +162,29 @@ export default function Page() {
                 {d.demandPredict.length > 0 ? (
                     <DemandPredictChart data={d.demandPredict} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">전력 수요 예측</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
                 )}
                 
-                {d.demandPredict.length > 0 && d.reGenPredictData.length > 0 ? (
-                    <DemandReGenChart demandData={d.demandPredict} reGenData={d.reGenPredictData} />
+                {d.windPredictData.length > 0 ? (
+                    <WindPredictChart data={d.windPredictData} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">풍력 발전 예측</h2>
+                        <p className="text-sm text-gray-500">데이터 로딩 중...</p>
+                    </div>
+                )}
+
+                {d.demandPredict.length > 0 && (d.reGenPredictData.length > 0 || d.windPredictData.length > 0) ? (
+                    <DemandReGenChart 
+                        demandData={d.demandPredict} 
+                        reGenData={d.reGenPredictData}
+                        windData={d.windPredictData}
+                    />
+                ) : (
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">수요 vs 재생에너지</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -186,7 +200,7 @@ export default function Page() {
                 {d.jejuCurtPredictToday.length > 0 ? (
                     <CurtChart data={d.jejuCurtPredictToday} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">제주 출력제어 예측</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -195,7 +209,7 @@ export default function Page() {
                 {d.hgGenPredictToday.length > 0 ? (
                     <HydrogenForecastChart data={d.hgGenPredictToday} />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">수소 생산 예측</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -209,7 +223,7 @@ export default function Page() {
                         totalItems={d.hgGenInfoToday.length}
                     />
                 ) : (
-                    <div className="toss-card p-6">
+                    <div className="card p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">수소 생산 현황</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
@@ -228,7 +242,7 @@ export default function Page() {
                     </div>
                 ) : (
                     <div className="col-span-2">
-                        <div className="toss-card p-6">
+                        <div className="card p-6">
                             <h2 className="text-lg font-bold text-gray-800 mb-2">최근 48시간 기상예보</h2>
                             <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                         </div>

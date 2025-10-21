@@ -6,22 +6,31 @@ import {
 import { Settings } from 'lucide-react';
 
 export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
-    const rows = data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' }));
+    const rows = data.map(d => ({ 
+        ...d, 
+        hour: `${d.fcstTm.slice(4,6)}/${d.fcstTm.slice(6,8)} ${d.fcstTm.slice(8, 10)}:00`
+    }));
+    
     return (
-        <div className="toss-card p-6">
+        <div className="card p-6">
             <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
                     <Settings className="w-5 h-5 text-orange-500" />
                 </div>
                 <div>
                     <h2 className="text-lg font-bold text-gray-800">출력제어 · 최소출력 추이</h2>
-                    <p className="text-sm text-gray-500">제주도 출력제어 현황</p>
+                    <p className="text-sm text-gray-500">최신 생성시간 기준 전체 예측</p>
                 </div>
             </div>
             <ResponsiveContainer width="100%" height={350}>
                 <LineChart data={rows} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
-                    <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} />
+                    <XAxis 
+                        dataKey="hour" 
+                        tick={{ fontSize: 12, fill: '#6b7280' }} 
+                        axisLine={{ stroke: '#e5e7eb' }}
+                        interval={Math.floor(rows.length / 10)}
+                    />
                     <YAxis yAxisId="left" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
                     <YAxis yAxisId="right" orientation="right" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
                     <RechartsTooltip

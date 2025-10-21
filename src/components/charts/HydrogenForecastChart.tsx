@@ -8,7 +8,7 @@ import { Zap } from 'lucide-react';
 export default function HydrogenForecastChart({ data }: { data: HgGenPredict[] }) {
     const rows = data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' }));
     return (
-        <div className="toss-card p-6">
+        <div className="card p-6">
             <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center">
                     <Zap className="w-5 h-5 text-cyan-500" />

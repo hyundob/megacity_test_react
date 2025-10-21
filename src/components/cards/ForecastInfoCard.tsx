@@ -4,7 +4,7 @@ import { Cloud, Thermometer, Droplets, Wind, Gauge, Sun } from 'lucide-react';
 
 export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
     return (
-        <div className="toss-card p-6">
+        <div className="card p-6">
             <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900 rounded-xl flex items-center justify-center">
                     <Cloud className="w-5 h-5 text-blue-500 dark:text-blue-400" />

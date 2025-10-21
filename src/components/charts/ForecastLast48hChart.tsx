@@ -19,7 +19,7 @@ export default function ForecastLast48hChart({ data, areaGrpId, areaGrpIds, sele
         hour: `${d.fcstTm.slice(4,6)}/${d.fcstTm.slice(6,8)} ${d.fcstTm.slice(8,10)}:00`,
     }));
     return (
-        <div className="toss-card p-6">
+        <div className="card p-6">
             <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">

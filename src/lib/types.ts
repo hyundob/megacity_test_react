@@ -3,7 +3,7 @@ export type ForecastPredict = {
     crtnTm: string; fcstTm: string; areaGrpId: string; fcstSrad: number; fcstTemp: number;
     fcstHumi: number; fcstWspd: number; fcstPsfc: number;
 };
-
+``
 export type SukubOperation = {
     tm: string; suppAbility: number; currPwrTot: number;
     renewPwrTot: number; renewPwrSolar: number; renewPwrWind: number;
@@ -27,7 +27,6 @@ export type EssPoint = {
 export type JejuCurtPredict = { fcstTm: string; fcstMinpw: number; fcstCurt: number };
 
 export type HgGenPredict = { areaGrpCd: string; fcstTm: string; fcstQgen: number; fcstCapa: number };
-
 export type HgGenInfo = { areaGrpCd: string; tm: string; hgenProd: number; hgenCapa: number };
 
 export type ServiceHealth = 'ok' | 'slow' | 'down';

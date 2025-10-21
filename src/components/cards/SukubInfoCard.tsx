@@ -85,10 +85,16 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
                             <XAxis 
                                 dataKey="time" 
                                 tick={{ fontSize: 8, fill: '#6b7280' }}
-                                interval={2}
                                 axisLine={false}
                                 tickLine={false}
                                 height={25}
+                                ticks={minMaxData
+                                    .filter((_, index) => {
+                                        const minute = parseInt(dailyData[minMaxData[index].index].tm.slice(10, 12));
+                                        return minute === 0; // 정시(00분)만 표시
+                                    })
+                                    .map(d => d.time)
+                                }
                             />
                             <YAxis 
                                 tick={{ fontSize: 8, fill: '#6b7280' }}
@@ -177,7 +183,7 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
     };
 
     return (
-        <div className="toss-card p-6 relative">
+        <div className="card p-6 relative">
             <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-yellow-50 dark:bg-yellow-900 rounded-xl flex items-center justify-center">
                     <Zap className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
