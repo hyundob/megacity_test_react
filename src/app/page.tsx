@@ -214,7 +214,7 @@ export default function Page() {
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
                 )}
-
+                {/*
                 {d.hgGenLastItem ? (
                     <HydrogenProductionCard
                         lastItem={d.hgGenLastItem}
@@ -227,7 +227,7 @@ export default function Page() {
                         <h2 className="text-lg font-bold text-gray-800 mb-2">수소 생산 현황</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
-                )}
+                )} */}
 
                 
                 {d.forecastPredictLast48h.length > 0 ? (
