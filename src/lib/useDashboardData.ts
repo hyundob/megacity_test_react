@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { fetchWithTiming, ENDPOINTS } from './api';
+import { fetchWithTiming, ENDPOINTS, getJejuWeatherRegionUrl } from './api';
 import {
     ForecastPredict, SukubOperation, SukubOperationItem, ReGenPredict, DemandPredict, JejuCurtPredict,
-    HgGenPredict, HgGenInfo, EssPoint, ServiceHealth, AlertItem
+    HgGenPredict, HgGenInfo, EssPoint, ServiceHealth, AlertItem, JejuRegion, JEJU_REGIONS
 } from './types';
 import { buildEssSeriesFromData, topHours, msToHealth } from './utils';
 
@@ -50,6 +50,7 @@ export function useDashboardData() {
     const [ncstPty, setNcstPty] = useState<number | null>(null);
     const [ncstPtyText, setNcstPtyText] = useState<string | null>(null);
     const [ncstSky, setNcstSky] = useState<number | null>(null);
+    const [selectedJejuRegion, setSelectedJejuRegion] = useState<JejuRegion>(JEJU_REGIONS[0]); // 기본값: 제주시
 
     const load = async () => {
         const [
@@ -147,19 +148,20 @@ export function useDashboardData() {
             // ignore
         }
 
-        // Weather via backend (nowcast + forecast)
+        // Weather via backend (nowcast + forecast) - 선택된 지역
         try {
-            const res = await fetch(ENDPOINTS.jejuWeatherCurrent, { cache: 'no-store' });
-            if (res.ok) {
-                const json = await res.json();
+            const weatherUrl = getJejuWeatherRegionUrl(selectedJejuRegion.nx, selectedJejuRegion.ny);
+            const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
+            if (weatherRes.ok) {
+                const weatherJson = await weatherRes.json();
                 // NCST (실황) 데이터
-                setNcstTempC(typeof json.ncst_tempC === 'number' ? json.ncst_tempC : null);
-                setNcstWindMs(typeof json.ncst_windMs === 'number' ? json.ncst_windMs : null);
-                setNcstWindDir(typeof json.ncst_windDirDeg === 'number' ? json.ncst_windDirDeg : null);
-                setNcstPty(typeof json.ncst_ptyCode === 'number' ? json.ncst_ptyCode : null);
-                setNcstPtyText(typeof json.ncst_ptyText === 'string' ? json.ncst_ptyText : null);
+                setNcstTempC(typeof weatherJson.ncst_tempC === 'number' ? weatherJson.ncst_tempC : null);
+                setNcstWindMs(typeof weatherJson.ncst_windMs === 'number' ? weatherJson.ncst_windMs : null);
+                setNcstWindDir(typeof weatherJson.ncst_windDirDeg === 'number' ? weatherJson.ncst_windDirDeg : null);
+                setNcstPty(typeof weatherJson.ncst_ptyCode === 'number' ? weatherJson.ncst_ptyCode : null);
+                setNcstPtyText(typeof weatherJson.ncst_ptyText === 'string' ? weatherJson.ncst_ptyText : null);
                 // FCST (예보) 데이터 - 하늘상태
-                setNcstSky(typeof json.fcst_skyCode === 'number' ? json.fcst_skyCode : null);
+                setNcstSky(typeof weatherJson.fcst_skyCode === 'number' ? weatherJson.fcst_skyCode : null);
             }
         } catch { /* ignore */ }
 
@@ -207,6 +209,25 @@ export function useDashboardData() {
         };
     }, [autoRefresh]);
 
+    // 제주 날씨 별도 로드 함수
+    const loadJejuWeather = async (region: JejuRegion) => {
+        try {
+            const url = getJejuWeatherRegionUrl(region.nx, region.ny);
+            const res = await fetch(url, { cache: 'no-store' });
+            if (res.ok) {
+                const json = await res.json();
+                // NCST (실황) 데이터
+                setNcstTempC(typeof json.ncst_tempC === 'number' ? json.ncst_tempC : null);
+                setNcstWindMs(typeof json.ncst_windMs === 'number' ? json.ncst_windMs : null);
+                setNcstWindDir(typeof json.ncst_windDirDeg === 'number' ? json.ncst_windDirDeg : null);
+                setNcstPty(typeof json.ncst_ptyCode === 'number' ? json.ncst_ptyCode : null);
+                setNcstPtyText(typeof json.ncst_ptyText === 'string' ? json.ncst_ptyText : null);
+                // FCST (예보) 데이터 - 하늘상태
+                setNcstSky(typeof json.fcst_skyCode === 'number' ? json.fcst_skyCode : null);
+            }
+        } catch { /* ignore */ }
+    };
+
     return {
         // 원본/파생
         forecastPredict, sukubOperation, sukubOperationToday, reGenPredictData, windPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
@@ -219,5 +240,7 @@ export function useDashboardData() {
         lastUpdated, apiStatus, dbStatus,
         // 자동 새로고침
         autoRefresh, setAutoRefresh, load, isClient,
+        // 제주 지역 선택
+        selectedJejuRegion, setSelectedJejuRegion, loadJejuWeather,
     };
 }

@@ -1,7 +1,7 @@
 import { formatWindDirection, formatSkyCondition } from '@/lib/utils';
 import { Thermometer, Wind, Compass, CloudRain, Cloud } from 'lucide-react';
 
-export default function KmaNowCard({ tempC, windMs, windDir, pty, ptyText, sky }: { tempC: number | null; windMs: number | null; windDir: number | null; pty: number | null; ptyText?: string | null; sky?: number | null }) {
+export default function KmaNowCard({ regionName, tempC, windMs, windDir, pty, ptyText, sky }: { regionName?: string; tempC: number | null; windMs: number | null; windDir: number | null; pty: number | null; ptyText?: string | null; sky?: number | null }) {
     const wind = formatWindDirection(windDir);
     
     return (
@@ -11,7 +11,7 @@ export default function KmaNowCard({ tempC, windMs, windDir, pty, ptyText, sky }
                     <Cloud className="w-5 h-5 text-blue-500" />
                 </div>
                 <div>
-                    <h2 className="text-lg font-bold text-gray-800">제주시 실황 (기상청)</h2>
+                    <h2 className="text-lg font-bold text-gray-800">{regionName || '제주시'} 실황 (기상청)</h2>
                     <p className="text-sm text-gray-500">실시간 기상 현황</p>
                 </div>
             </div>

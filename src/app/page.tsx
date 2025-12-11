@@ -15,9 +15,9 @@ import HydrogenForecastChart from '../components/charts/HydrogenForecastChart';
 import ForecastLast48hChart from '../components/charts/ForecastLast48hChart';
 import JejuOperationChart from '../components/charts/JejuOperationChart';
 import HydrogenProductionCard from '../components/cards/HydrogenProductionCard';
-import KmaNowCard from '../components/cards/KmaNowCard';
 import AlertsButton from '../components/alerts/AlertsButton';
 import WindPredictChart from '../components/charts/WindPredictChart';
+import JejuMapCard from '../components/map/JejuMapCard';
 import './globals.css';
 
 export default function Page() {
@@ -148,7 +148,20 @@ export default function Page() {
                     </div>
                 )}
 
-                <KmaNowCard tempC={d.ncstTempC} windMs={d.ncstWindMs} windDir={d.ncstWindDir} pty={d.ncstPty} ptyText={d.ncstPtyText} sky={d.ncstSky} />
+                {/* 제주도 지도 및 지역 선택 + 실시간 기상 현황 */}
+                <JejuMapCard 
+                    selectedRegion={d.selectedJejuRegion}
+                    onRegionSelect={async (region) => {
+                        d.setSelectedJejuRegion(region);
+                        await d.loadJejuWeather(region);
+                    }}
+                    tempC={d.ncstTempC} 
+                    windMs={d.ncstWindMs} 
+                    windDir={d.ncstWindDir} 
+                    pty={d.ncstPty} 
+                    ptyText={d.ncstPtyText} 
+                    sky={d.ncstSky} 
+                />
 
                 {d.reGenPredictData.length > 0 ? (
                     <SolarPredictChart data={d.reGenPredictData} />
@@ -214,7 +227,7 @@ export default function Page() {
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
                 )}
-                {/*
+                
                 {d.hgGenLastItem ? (
                     <HydrogenProductionCard
                         lastItem={d.hgGenLastItem}
@@ -227,7 +240,7 @@ export default function Page() {
                         <h2 className="text-lg font-bold text-gray-800 mb-2">수소 생산 현황</h2>
                         <p className="text-sm text-gray-500">데이터 로딩 중...</p>
                     </div>
-                )} */}
+                )}
 
                 
                 {d.forecastPredictLast48h.length > 0 ? (

@@ -38,4 +38,9 @@ export const ENDPOINTS = {
     
     // 제주 날씨 (jeju-weather)
     jejuWeatherCurrent: `${BASE_URL}/jeju-weather/current`,
-};
+    jejuWeatherRegion: (nx: number, ny: number) => 
+        `${BASE_URL}/jeju-weather/region?nx=${nx}&ny=${ny}`,
+} as const;
+
+export const getJejuWeatherRegionUrl = (nx: number, ny: number) => 
+    `${BASE_URL}/jeju-weather/region?nx=${nx}&ny=${ny}`;
