@@ -12,31 +12,39 @@ export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
     }));
     
     return (
-        <div className="card p-6">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
-                    <Settings className="w-5 h-5 text-orange-500" />
-                </div>
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800">출력제어 · 최소출력 추이</h2>
-                    <p className="text-sm text-gray-500">최신 생성시간 기준 전체 예측</p>
-                </div>
-            </div>
-            <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={rows} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+        <div className="w-full">
+            <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={rows} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
                     <XAxis 
                         dataKey="hour" 
-                        tick={{ fontSize: 12, fill: '#6b7280' }} 
+                        tick={{ fontSize: 10, fill: '#6b7280' }} 
                         axisLine={{ stroke: '#e5e7eb' }}
-                        interval={Math.floor(rows.length / 10)}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        interval={Math.max(0, Math.floor(rows.length / 8) - 1)}
+                        label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                     />
-                    <YAxis yAxisId="left" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
-                    <YAxis yAxisId="right" orientation="right" unit=" MW/m2" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
+                    <YAxis 
+                        yAxisId="left" 
+                        tick={{ fontSize: 11, fill: '#6b7280' }} 
+                        axisLine={{ stroke: '#e5e7eb' }} 
+                        tickFormatter={(value) => value.toLocaleString()}
+                        label={{ value: '최소출력 (MW)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
+                    />
+                    <YAxis 
+                        yAxisId="right" 
+                        orientation="right" 
+                        tick={{ fontSize: 11, fill: '#6b7280' }} 
+                        axisLine={{ stroke: '#e5e7eb' }} 
+                        tickFormatter={(value) => value.toLocaleString()}
+                        label={{ value: '출력제어 (MW)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
+                    />
                     <RechartsTooltip
                         formatter={(value: number, name: string) => {
-                            if (name.includes('최소출력')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW/m2`, name];
-                            if (name.includes('출력제어')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW/m2`, name];
+                            if (name.includes('최소출력')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW`, name];
+                            if (name.includes('출력제어')) return [`${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW`, name];
                             return [value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','), name];
                         }}
                         labelFormatter={(label) => `시간: ${label}`}
@@ -47,9 +55,9 @@ export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         }}
                     />
-                    <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '13px' }} />
-                    <Line yAxisId="left" type="monotone" dataKey="fcstMinpw" name="중앙급전 최소출력량 (MW/m2)" stroke="#3b82f6" strokeWidth={3} strokeDasharray="5 5" dot={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="fcstCurt" name="출력제어량 (MW/m2)" stroke="#ef4444" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                    <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 20, fontSize: '12px' }} />
+                    <Line yAxisId="left" type="monotone" dataKey="fcstMinpw" name="최소출력" stroke="#3b82f6" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                    <Line yAxisId="right" type="monotone" dataKey="fcstCurt" name="출력제어" stroke="#dc2626" strokeWidth={3} strokeDasharray="5 5" dot={false} />
                 </LineChart>
             </ResponsiveContainer>
         </div>

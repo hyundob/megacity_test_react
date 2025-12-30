@@ -11,26 +11,26 @@ export default function SolarPredictChart({ data }: { data: ReGenPredict[] }) {
     }));
     
     return (
-        <div className="card p-6">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
-                    <Sun className="w-5 h-5 text-orange-500" />
-                </div>
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800">태양광 발전 예측</h2>
-                    <p className="text-sm text-gray-500">최신 생성시간 기준 전체 예측</p>
-                </div>
-            </div>
-            <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={rows} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
+        <div className="w-full">
+            <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={rows} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.2)" />
                     <XAxis 
                         dataKey="hour" 
-                        tick={{ fontSize: 12, fill: '#6b7280' }} 
-                        axisLine={{ stroke: '#e5e7eb' }}
-                        interval={Math.floor(rows.length / 10)} // 대략 10개 정도의 tick만 표시
+                        tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.8)' }} 
+                        axisLine={{ stroke: 'rgba(255, 255, 255, 0.3)' }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        interval={Math.max(0, Math.floor(rows.length / 8) - 1)}
+                        label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: 'rgba(255, 255, 255, 0.8)' } }}
                     />
-                    <YAxis unit=" MWh" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={{ stroke: '#e5e7eb' }} tickFormatter={(value) => value.toLocaleString()} />
+                    <YAxis 
+                        tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }} 
+                        axisLine={{ stroke: 'rgba(255, 255, 255, 0.3)' }} 
+                        tickFormatter={(value) => value.toLocaleString()}
+                        label={{ value: '발전량 (MWh)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12, fill: 'rgba(255, 255, 255, 0.8)' } }}
+                    />
                     <RechartsTooltip 
                         contentStyle={{ 
                             backgroundColor: 'white', 
@@ -38,15 +38,17 @@ export default function SolarPredictChart({ data }: { data: ReGenPredict[] }) {
                             borderRadius: '12px',
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         }}
+                        labelFormatter={(label: string) => `시간: ${label}`}
+                        labelStyle={{ color: '#4b5563', fontSize: 12, marginBottom: 4 }}
                         formatter={(value: number, name: string) => [
                             `${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MWh`, 
                             name
                         ]}
                     />
-                    <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '13px' }} />
-                    <Line type="monotone" dataKey="fcstQgmx" name="최대 예측" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                    <Line type="monotone" dataKey="fcstQgmn" name="최소 예측" stroke="#10b981" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                    <Line type="monotone" dataKey="fcstQgen" name="최종 발전량 예측" stroke="#3b82f6" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                    <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 20, fontSize: '12px' }} />
+                    <Line type="monotone" dataKey="fcstQgmx" name="최대 예측" stroke="#ffffff" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    <Line type="monotone" dataKey="fcstQgmn" name="최소 예측" stroke="#fde68a" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    <Line type="monotone" dataKey="fcstQgen" name="최종 발전량 예측" stroke="#fbbf24" strokeWidth={3} strokeDasharray="5 5" dot={false} />
                 </LineChart>
             </ResponsiveContainer>
         </div>

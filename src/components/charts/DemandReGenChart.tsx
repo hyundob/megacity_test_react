@@ -33,29 +33,20 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
     });
 
     return (
-        <div className="card p-6">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-purple-500" />
-                </div>
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800">수요 및 신재생발전 예측</h2>
-                    <p className="text-sm text-gray-500">전력수요와 신재생에너지 발전량 통합 분석</p>
-                </div>
-            </div>
-            
-            <ResponsiveContainer width="100%" height={380}>
-                <LineChart data={mergedData} margin={{ left: 8, right: 8, top: 10, bottom: 40 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
+        <div className="w-full">
+            <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={mergedData} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis
                         dataKey="hour"
-                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        tick={{ fontSize: 10, fill: '#6b7280' }}
                         angle={-45}
                         textAnchor="end"
-                        tickMargin={12}
-                        height={50}
+                        tickMargin={8}
+                        height={60}
                         axisLine={{ stroke: '#e5e7eb' }}
-                        interval={Math.floor(mergedData.length / 10)}
+                        interval={Math.max(0, Math.floor(mergedData.length / 8) - 1)}
+                        label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                     />
                     {/* 좌측 Y축: 전력량 (MWh) */}
                     <YAxis 
@@ -64,7 +55,7 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
                         tick={{ fontSize: 11, fill: '#6b7280' }} 
                         domain={["auto","auto"]} 
                         axisLine={{ stroke: '#e5e7eb' }}
-                        label={{ value: '전력량 (MWh)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                        label={{ value: '전력량 (MWh)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                         tickFormatter={(value) => value.toLocaleString()}
                     />
                     <RechartsTooltip 
@@ -74,12 +65,14 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
                             borderRadius: '12px',
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         }}
+                        labelFormatter={(label: string) => `시간: ${label}`}
+                        labelStyle={{ color: '#4b5563', fontSize: 12, marginBottom: 4 }}
                         formatter={(value: number, name: string) => [
                             `${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MWh`,
                             name
                         ]}
                     />
-                    <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 40 }} />
+                    <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 20, fontSize: '12px', color: '#4b5563' }} />
                     
                     {/* 수요 관련 라인들 */}
                     <Line 
@@ -87,7 +80,7 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
                         type="monotone" 
                         dataKey="fcstQgen" 
                         name="수요예측" 
-                        stroke="#6366f1" 
+                        stroke="#2563eb" 
                         strokeWidth={3} 
                         strokeDasharray="5 5"
                         dot={false} 
@@ -99,7 +92,7 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
                         type="monotone" 
                         dataKey="renewGen" 
                         name="신재생발전 예측" 
-                        stroke="#10b981" 
+                        stroke="#34d399" 
                         strokeWidth={3} 
                         strokeDasharray="5 5"
                         dot={false} 

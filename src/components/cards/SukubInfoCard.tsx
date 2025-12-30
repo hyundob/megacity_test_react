@@ -183,97 +183,97 @@ export default function SukubInfoCard({ data, dailyData = [] }: SukubInfoCardPro
     };
 
     return (
-        <div className="card p-6 relative">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-yellow-50 dark:bg-yellow-900 rounded-xl flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+        <div className="relative">
+            <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-yellow-50 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
                 </div>
                 <div>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">제주 계통 운영 정보</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">전력 시스템 현황</p>
+                    <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">제주 계통 운영 정보</h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">전력 시스템 현황</p>
                 </div>
             </div>
             
-            <div className="mb-4">
-                <div className="flex items-center justify-between text-sm">
+            <div className="mb-3">
+                <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500 dark:text-gray-400">기준시각</span>
                     <span className="font-medium dark:text-gray-200">{formatTime(data.tm)}</span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
                 <div 
-                    className="relative flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-100 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
+                    className="relative flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-100 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
                     onMouseEnter={() => setHoveredItem('suppAbility')}
                     onMouseLeave={() => setHoveredItem(null)}
                 >
-                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-lg flex items-center justify-center">
-                        <Battery className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <div className="w-7 h-7 bg-blue-100 dark:bg-blue-800 rounded-md flex items-center justify-center">
+                        <Battery className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">공급능력</div>
-                        <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{data.suppAbility.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
+                        <div className="text-base font-bold text-blue-700 dark:text-blue-300">{data.suppAbility.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'suppAbility' && renderTooltip('suppAbility', '공급능력')}
                 </div>
                 
                 <div 
-                    className="relative flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900 rounded-xl border border-red-100 dark:border-red-800 cursor-pointer hover:bg-red-100 dark:hover:bg-red-800 transition-colors"
+                    className="relative flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900 rounded-lg border border-red-100 dark:border-red-800 cursor-pointer hover:bg-red-100 dark:hover:bg-red-800 transition-colors"
                     onMouseEnter={() => setHoveredItem('currPwrTot')}
                     onMouseLeave={() => setHoveredItem(null)}
                 >
-                    <div className="w-8 h-8 bg-red-100 dark:bg-red-800 rounded-lg flex items-center justify-center">
-                        <Activity className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    <div className="w-7 h-7 bg-red-100 dark:bg-red-800 rounded-md flex items-center justify-center">
+                        <Activity className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">현재수요</div>
-                        <div className="text-lg font-bold text-red-700 dark:text-red-300">{data.currPwrTot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
+                        <div className="text-base font-bold text-red-700 dark:text-red-300">{data.currPwrTot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'currPwrTot' && renderTooltip('currPwrTot', '현재수요')}
                 </div>
                 
                 <div 
-                    className="relative flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900 rounded-xl border border-green-100 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-800 transition-colors"
+                    className="relative flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900 rounded-lg border border-green-100 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-800 transition-colors"
                     onMouseEnter={() => setHoveredItem('renewPwrTot')}
                     onMouseLeave={() => setHoveredItem(null)}
                 >
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-800 rounded-lg flex items-center justify-center">
-                        <Zap className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    <div className="w-7 h-7 bg-green-100 dark:bg-green-800 rounded-md flex items-center justify-center">
+                        <Zap className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">신재생합계</div>
-                        <div className="text-lg font-bold text-green-700 dark:text-green-300">{data.renewPwrTot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
+                        <div className="text-base font-bold text-green-700 dark:text-green-300">{data.renewPwrTot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'renewPwrTot' && renderTooltip('renewPwrTot', '신재생합계')}
                 </div>
                 
                 <div 
-                    className="relative flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900 rounded-xl border border-orange-100 dark:border-orange-800 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-800 transition-colors"
+                    className="relative flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900 rounded-lg border border-orange-100 dark:border-orange-800 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-800 transition-colors"
                     onMouseEnter={() => setHoveredItem('renewPwrSolar')}
                     onMouseLeave={() => setHoveredItem(null)}
                 >
-                    <div className="w-8 h-8 bg-orange-100 dark:bg-orange-800 rounded-lg flex items-center justify-center">
-                        <Sun className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    <div className="w-7 h-7 bg-orange-100 dark:bg-orange-800 rounded-md flex items-center justify-center">
+                        <Sun className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">태양광합계</div>
-                        <div className="text-lg font-bold text-orange-700 dark:text-orange-300">{data.renewPwrSolar.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
+                        <div className="text-base font-bold text-orange-700 dark:text-orange-300">{data.renewPwrSolar.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                     </div>
                     {hoveredItem === 'renewPwrSolar' && renderTooltip('renewPwrSolar', '태양광합계')}
                 </div>
             </div>
             
             <div 
-                className="relative mt-4 flex items-center gap-3 p-4 bg-cyan-50 dark:bg-cyan-900 rounded-xl border border-cyan-100 dark:border-cyan-800 cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-800 transition-colors"
+                className="relative mt-3 flex items-center gap-2 p-3 bg-cyan-50 dark:bg-cyan-900 rounded-lg border border-cyan-100 dark:border-cyan-800 cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-800 transition-colors"
                 onMouseEnter={() => setHoveredItem('renewPwrWind')}
                 onMouseLeave={() => setHoveredItem(null)}
             >
-                <div className="w-8 h-8 bg-cyan-100 dark:bg-cyan-800 rounded-lg flex items-center justify-center">
-                    <Wind className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                <div className="w-7 h-7 bg-cyan-100 dark:bg-cyan-800 rounded-md flex items-center justify-center">
+                    <Wind className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                 </div>
                 <div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">풍력합계</div>
-                    <div className="text-lg font-bold text-cyan-700 dark:text-cyan-300">{data.renewPwrWind.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
+                    <div className="text-base font-bold text-cyan-700 dark:text-cyan-300">{data.renewPwrWind.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW</div>
                 </div>
                 {hoveredItem === 'renewPwrWind' && renderTooltip('renewPwrWind', '풍력합계')}
             </div>

@@ -13,28 +13,22 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
     }));
 
     return (
-        <div className="card p-6">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-blue-500" />
-                </div>
-                <div>
-                    <h2 className="text-lg font-bold text-gray-800">제주계통운영정보 (최근 24시간)</h2>
-                    <p className="text-sm text-gray-500">현재수요/태양광/풍력 발전량</p>
-                </div>
-            </div>
-            
-            <ResponsiveContainer width="100%" height={380}>
-                <LineChart data={rows} margin={{ left: 8, right: 8, top: 10, bottom: 40 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
+        <div className="w-full">
+            <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={rows} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis
                         dataKey="dateTime"
-                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        tick={{ fontSize: 10, fill: '#6b7280' }}
                         angle={-45}
                         textAnchor="end"
-                        tickMargin={12}
-                        height={50}
+                        tickMargin={8}
+                        height={60}
                         axisLine={{ stroke: '#e5e7eb' }}
+                        interval={Math.max(0, Math.floor(rows.filter((_, index) => {
+                            const minute = parseInt(rows[index].tm.slice(10, 12));
+                            return minute === 0;
+                        }).length / 8) - 1)}
                         ticks={rows
                             .filter((_, index) => {
                                 const minute = parseInt(rows[index].tm.slice(10, 12));
@@ -42,6 +36,7 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
                             })
                             .map(r => r.dateTime)
                         }
+                        label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                     />
                     {/* 좌측 Y축: 전력량 (MW) */}
                     <YAxis 
@@ -50,7 +45,7 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
                         tick={{ fontSize: 11, fill: '#6b7280' }} 
                         domain={["auto","auto"]} 
                         axisLine={{ stroke: '#e5e7eb' }}
-                        label={{ value: '전력량 (MW)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                        label={{ value: '전력량 (MW)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                         tickFormatter={(value) => value.toLocaleString()}
                     />
                     <RechartsTooltip 
@@ -60,12 +55,14 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
                             borderRadius: '12px',
                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         }}
+                        labelFormatter={(label: string) => `시간: ${label}`}
+                        labelStyle={{ color: '#4b5563', fontSize: 12, marginBottom: 4 }}
                         formatter={(value: number, name: string) => [
                             `${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} MW`,
                             name
                         ]}
                     />
-                    <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 40 }} />
+                    <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: 20, fontSize: '12px', color: '#4b5563' }} />
                     
                     {/* 현재수요 */}
                     <Line 
@@ -73,7 +70,7 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
                         type="monotone" 
                         dataKey="currPwrTot" 
                         name="현재수요" 
-                        stroke="#ef4444" 
+                        stroke="#a8b8d8" 
                         strokeWidth={3} 
                         dot={false} 
                     />
@@ -84,7 +81,7 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
                         type="monotone" 
                         dataKey="renewPwrSolar" 
                         name="태양광발전" 
-                        stroke="#f59e0b" 
+                        stroke="#fde68a" 
                         strokeWidth={3} 
                         dot={false} 
                     />
@@ -95,7 +92,7 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
                         type="monotone" 
                         dataKey="renewPwrWind" 
                         name="풍력발전" 
-                        stroke="#3b82f6" 
+                        stroke="#93c5fd" 
                         strokeWidth={3} 
                         dot={false} 
                     />

@@ -1,45 +1,114 @@
 import { Bell } from 'lucide-react';
 import { AlertItem } from '@/lib/types';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export default function AlertsButton({ alerts }: { alerts: AlertItem[] }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const isMouseInsideRef = useRef(false);
+
+    const handleToggle = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsOpen(prev => !prev);
+    }, []);
 
     useEffect(() => {
-        function handleClickOutside(event: Event) {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        }
+        if (!isOpen) return;
 
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('touchstart', handleClickOutside);
-        }
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node;
+            
+            // 마우스가 컨테이너나 드롭다운 안에 있으면 무시
+            if (
+                containerRef.current?.contains(target) ||
+                dropdownRef.current?.contains(target) ||
+                isMouseInsideRef.current
+            ) {
+                return;
+            }
+            
+            setIsOpen(false);
+        };
+
+        // 이벤트 리스너는 약간의 지연 후 추가 (현재 클릭 이벤트가 처리되도록)
+        const timeoutId = setTimeout(() => {
+            document.addEventListener('mousedown', handleClickOutside, true);
+            document.addEventListener('touchstart', handleClickOutside, true);
+        }, 100);
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('touchstart', handleClickOutside);
+            clearTimeout(timeoutId);
+            document.removeEventListener('mousedown', handleClickOutside, true);
+            document.removeEventListener('touchstart', handleClickOutside, true);
+        };
+    }, [isOpen]);
+
+    // 드롭다운 위치 계산
+    useEffect(() => {
+        if (!isOpen || !containerRef.current || !dropdownRef.current) return;
+
+        const updatePosition = () => {
+            if (!containerRef.current || !dropdownRef.current) return;
+            
+            const buttonRect = containerRef.current.getBoundingClientRect();
+            const dropdown = dropdownRef.current;
+            const dropdownWidth = 320;
+            
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = `${buttonRect.bottom + 12}px`;
+            
+            const rightPosition = window.innerWidth - buttonRect.right;
+            if (rightPosition + dropdownWidth > window.innerWidth) {
+                dropdown.style.right = '16px';
+                dropdown.style.left = 'auto';
+            } else {
+                dropdown.style.right = `${rightPosition}px`;
+                dropdown.style.left = 'auto';
+            }
+        };
+
+        updatePosition();
+        
+        // 스크롤이나 리사이즈 시 위치 업데이트
+        const handleScroll = () => updatePosition();
+        const handleResize = () => updatePosition();
+        
+        window.addEventListener('scroll', handleScroll, true);
+        window.addEventListener('resize', handleResize);
+        
+        return () => {
+            window.removeEventListener('scroll', handleScroll, true);
+            window.removeEventListener('resize', handleResize);
         };
     }, [isOpen]);
 
     return (
         <div className="relative" ref={containerRef}>
             <button
-                className="relative p-3 bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-200 active:scale-95"
+                className="relative p-3 bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-200"
                 aria-label="알림 보기"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggle}
             >
                 <Bell size={18} className="text-gray-600" />
                 {/* 새 알림 뱃지 */}
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
             </button>
             
-            {/* 말풍선 */}
-            <div className={`absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 transition-all duration-200 z-50 ${
-                isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
-            }`}>
+            {/* 말풍선 - fixed positioning 사용, 항상 렌더링하되 visibility로 제어 */}
+            <div 
+                ref={dropdownRef}
+                className={`w-80 bg-white rounded-2xl shadow-xl border border-gray-200 transition-opacity duration-200 z-[99999] ${
+                    isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`}
+                style={{ 
+                    position: 'fixed',
+                    visibility: isOpen ? 'visible' : 'hidden'
+                }}
+                onMouseEnter={() => { isMouseInsideRef.current = true; }}
+                onMouseLeave={() => { isMouseInsideRef.current = false; }}
+                onMouseDown={(e) => e.stopPropagation()}
+            >
                 <div className="p-6">
                     <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
                         <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center">
