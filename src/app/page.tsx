@@ -24,11 +24,11 @@ export default function Page() {
     // 이벤트 핸들러
     const handleToggleAutoRefresh = useCallback(() => {
         d.setAutoRefresh(!d.autoRefresh);
-    }, [d]);
+    }, [d.autoRefresh, d.setAutoRefresh]);
 
     const handleManualRefresh = useCallback(() => {
         d.load();
-    }, [d]);
+    }, [d.load]);
 
     const handleAreaGrpIdChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedAreaGrpId(e.target.value);
@@ -53,11 +53,11 @@ export default function Page() {
         return d.forecastPredictLast48h.filter(item => item.areaGrpId === selectedAreaGrpId);
     }, [d.forecastPredictLast48h, selectedAreaGrpId]);
 
-    const handleRegionSelect = useCallback(async (region: typeof d.selectedJejuRegion) => {
+    const handleRegionSelect = useCallback(async (region: NonNullable<typeof d.selectedJejuRegion>) => {
         if (!region) return;
         d.setSelectedJejuRegion(region);
         await d.loadJejuWeather(region);
-    }, [d]);
+    }, [d.setSelectedJejuRegion, d.loadJejuWeather]);
 
     return (
         <div className="min-h-screen bg-white">
@@ -77,10 +77,10 @@ export default function Page() {
                     className="grid grid-cols-1 lg:grid-cols-12 gap-4"
                     style={{
                         background: CARD_GRADIENTS.mainBackground,
-                            padding: '1.5rem',
-                            borderRadius: '24px',
-                            marginBottom: '1.5rem',
-                            boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.1)'
+                        padding: '1.5rem',
+                        borderRadius: '24px',
+                        marginBottom: '1.5rem',
+                        boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.1)'
                     }}
                 >
                     <LeftColumn
@@ -119,23 +119,23 @@ export default function Page() {
                         currentRenewable={kpi.currentRenewable}
                         renewableRatio={kpi.renewableRatio}
                         hydrogenUtil={kpi.hydrogenUtil}
-                                        latApi={d.latApi}
-                                        latDb={d.latDb}
-                                        latPredict={d.latPredict}
-                                        healthApi={d.healthApi}
-                                        healthDb={d.healthDb}
-                                        healthPredict={d.healthPredict}
-                                    />
-                        </div>
+                        latApi={d.latApi}
+                        latDb={d.latDb}
+                        latPredict={d.latPredict}
+                        healthApi={d.healthApi}
+                        healthDb={d.healthDb}
+                        healthPredict={d.healthPredict}
+                    />
+                </div>
 
                 {/* 하단: 기상 예보 상세 전체폭 */}
                 <Forecast48hSection
                     forecastPredictLast48h={d.forecastPredictLast48h}
                     filteredData={filteredData}
                     selectedAreaGrpId={selectedAreaGrpId}
-                                                areaGrpIds={areaGrpIds}
-                                                onAreaGrpIdChange={handleAreaGrpIdChange}
-                                            />
+                    areaGrpIds={areaGrpIds}
+                    onAreaGrpIdChange={handleAreaGrpIdChange}
+                />
             </div>
         </div>
     );

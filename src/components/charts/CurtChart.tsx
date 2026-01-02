@@ -1,20 +1,29 @@
+import { useMemo } from 'react';
 import { JejuCurtPredict } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend
 } from 'recharts';
-import { Settings } from 'lucide-react';
+import { CONFIG } from '@/lib/config';
 
 export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
-    const rows = data.map(d => ({ 
-        ...d, 
-        hour: `${d.fcstTm.slice(4,6)}/${d.fcstTm.slice(6,8)} ${d.fcstTm.slice(8, 10)}:00`
-    }));
+    const rows = useMemo(() => 
+        data.map(d => ({ 
+            ...d, 
+            hour: `${d.fcstTm.slice(4,6)}/${d.fcstTm.slice(6,8)} ${d.fcstTm.slice(8, 10)}:00`
+        })),
+        [data]
+    );
+    
+    const xAxisInterval = useMemo(() => 
+        Math.max(0, Math.floor(rows.length / CONFIG.CHART.MAX_XAXIS_TICKS) - 1),
+        [rows.length]
+    );
     
     return (
-        <div className="w-full">
-            <ResponsiveContainer width="100%" height={260}>
-                <LineChart data={rows} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+        <div className="w-full" role="img" aria-label="출력제어 예측 차트">
+            <ResponsiveContainer width="100%" height={CONFIG.CHART.DEFAULT_HEIGHT}>
+                <LineChart data={rows} margin={CONFIG.CHART.MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
                     <XAxis 
                         dataKey="hour" 
@@ -23,7 +32,7 @@ export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
                         angle={-45}
                         textAnchor="end"
                         height={60}
-                        interval={Math.max(0, Math.floor(rows.length / 8) - 1)}
+                        interval={xAxisInterval}
                         label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                     />
                     <YAxis 

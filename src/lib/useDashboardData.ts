@@ -28,6 +28,10 @@ export function useDashboardData() {
     const [apiStatus, setApiStatus] = useState<'ok' | 'error'>('error');
     const [dbStatus, setDbStatus] = useState<'ok' | 'error'>('error');
     
+    // 에러 및 로딩 상태
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    
     // 자동 새로고침 상태 관리
     const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
     const [isClient, setIsClient] = useState(false);
@@ -53,26 +57,33 @@ export function useDashboardData() {
     const [selectedJejuRegion, setSelectedJejuRegion] = useState<JejuRegion>(JEJU_REGIONS[0]); // 기본값: 제주시
 
     const load = async () => {
-        const [
-            forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
-            sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap,
-        ] = await Promise.all([
-            fetchWithTiming(ENDPOINTS.forecastPredictLatest),
-            fetchWithTiming(ENDPOINTS.sukubOperationLatest),
-            fetchWithTiming(ENDPOINTS.reGenPredictLatestCrtn),
-            fetchWithTiming(ENDPOINTS.demandPredictLatestCrtn),
-            fetchWithTiming(ENDPOINTS.sukubOperationLast24h),
-            fetchWithTiming(ENDPOINTS.jejuCurtPredictLatestCrtn),
-            fetchWithTiming(ENDPOINTS.hgGenPredictToday),
-            fetchWithTiming(ENDPOINTS.hgGenInfoToday),
-        ]);
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const [
+                forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
+                sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap,
+            ] = await Promise.all([
+                fetchWithTiming(ENDPOINTS.forecastPredictLatest),
+                fetchWithTiming(ENDPOINTS.sukubOperationLatest),
+                fetchWithTiming(ENDPOINTS.reGenPredictLatestCrtn),
+                fetchWithTiming(ENDPOINTS.demandPredictLatestCrtn),
+                fetchWithTiming(ENDPOINTS.sukubOperationLast24h),
+                fetchWithTiming(ENDPOINTS.jejuCurtPredictLatestCrtn),
+                fetchWithTiming(ENDPOINTS.hgGenPredictToday),
+                fetchWithTiming(ENDPOINTS.hgGenInfoToday),
+            ]);
 
-        // ok 체크
-        const ok = [
-            forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
-            sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap
-        ].every(w => w.res.ok);
-        if (!ok) throw new Error('API 오류');
+            // ok 체크
+            const ok = [
+                forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
+                sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap
+            ].every(w => w.res.ok);
+            
+            if (!ok) {
+                throw new Error('일부 API 요청이 실패했습니다');
+            }
 
         // 파싱
         const [forecastPredictData, sukubOperationData, reGenPredict, demandPredictData, sukubOperationTodayData, jejuCurtPredictData, hgGenPredictData, hgGenInfoData] =
@@ -132,7 +143,6 @@ export function useDashboardData() {
         setHgGenUtilPct(util);
         setHgGenLatency(Number(((hgGenInfoWrap.ms) / 1000).toFixed(2)));
 
-        setLastUpdated(new Date().toLocaleTimeString());
         setApiStatus('ok');
         setDbStatus(forecastPredictData && sukubOperationData ? 'ok' : 'error');
 
@@ -144,8 +154,8 @@ export function useDashboardData() {
                 const sorted = [...arr].sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
                 setForecastPredictLast48h(sorted);
             }
-        } catch {
-            // ignore
+        } catch (err) {
+            console.error('48시간 예보 데이터 로딩 실패:', err);
         }
 
         // Weather via backend (nowcast + forecast) - 선택된 지역
@@ -163,7 +173,9 @@ export function useDashboardData() {
                 // FCST (예보) 데이터 - 하늘상태
                 setNcstSky(typeof weatherJson.fcst_skyCode === 'number' ? weatherJson.fcst_skyCode : null);
             }
-        } catch { /* ignore */ }
+        } catch (err) {
+            console.error('제주 날씨 데이터 로딩 실패:', err);
+        }
 
         // 풍력 발전 예측 (별도 조회)
         try {
@@ -172,8 +184,19 @@ export function useDashboardData() {
                 const arr = (await res.json()) as ReGenPredict[];
                 setWindPredictData(arr);
             }
-        } catch {
-            // ignore
+        } catch (err) {
+            console.error('풍력 발전 예측 데이터 로딩 실패:', err);
+        }
+        
+        setLastUpdated(new Date().toLocaleString('ko-KR'));
+        setIsLoading(false);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '데이터 로딩 중 오류가 발생했습니다';
+            setError(errorMessage);
+            setIsLoading(false);
+            setApiStatus('error');
+            setDbStatus('error');
+            console.error('Dashboard data load error:', err);
         }
     };
 

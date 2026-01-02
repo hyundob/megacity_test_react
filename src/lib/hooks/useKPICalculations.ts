@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { SukubOperation } from '../types';
+import { calculateRenewableRatio } from '../utils/calculations';
 
 interface UseKPICalculationsProps {
     sukubOperation: SukubOperation | null;
@@ -11,10 +12,7 @@ export function useKPICalculations({ sukubOperation, hgGenUtilPct }: UseKPICalcu
         const currentDemand = sukubOperation?.currPwrTot ?? null;
         const currentRenewable = sukubOperation?.renewPwrTot ?? null;
         
-        const renewableRatio = currentDemand && currentDemand > 0 && currentRenewable
-            ? ((currentRenewable / currentDemand) * 100)
-            : 0;
-        
+        const renewableRatio = calculateRenewableRatio(currentDemand, currentRenewable);
         const hydrogenUtil = hgGenUtilPct ?? 0;
 
         return {

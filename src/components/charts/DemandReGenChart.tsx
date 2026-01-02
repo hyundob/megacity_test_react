@@ -1,9 +1,10 @@
+import { useMemo } from 'react';
 import { DemandPredict, ReGenPredict } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend
 } from 'recharts';
-import { Zap } from 'lucide-react';
+import { CONFIG } from '@/lib/config';
 
 interface DemandReGenChartProps {
     demandData: DemandPredict[];
@@ -13,7 +14,7 @@ interface DemandReGenChartProps {
 
 export default function DemandReGenChart({ demandData, reGenData, windData }: DemandReGenChartProps) {
     // 시간대별로 데이터 병합
-    const mergedData = demandData.map(demand => {
+    const mergedData = useMemo(() => demandData.map(demand => {
         const matchingSolar = reGenData.find(regen => regen.fcstTm === demand.fcstTm);
         const matchingWind = windData.find(wind => wind.fcstTm === demand.fcstTm);
         
@@ -30,12 +31,17 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
             solarGen: solarGen > 0 ? solarGen : null,
             windGen: windGen > 0 ? windGen : null,
         };
-    });
+    }), [demandData, reGenData, windData]);
+    
+    const xAxisInterval = useMemo(() => 
+        Math.max(0, Math.floor(mergedData.length / CONFIG.CHART.MAX_XAXIS_TICKS) - 1),
+        [mergedData.length]
+    );
 
     return (
-        <div className="w-full">
+        <div className="w-full" role="img" aria-label="수요 vs 재생에너지 비교 차트">
             <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={mergedData} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                <LineChart data={mergedData} margin={CONFIG.CHART.MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis
                         dataKey="hour"
@@ -45,7 +51,7 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
                         tickMargin={8}
                         height={60}
                         axisLine={{ stroke: '#e5e7eb' }}
-                        interval={Math.max(0, Math.floor(mergedData.length / 8) - 1)}
+                        interval={xAxisInterval}
                         label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                     />
                     {/* 좌측 Y축: 전력량 (MWh) */}

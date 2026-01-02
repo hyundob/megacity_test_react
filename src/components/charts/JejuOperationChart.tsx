@@ -1,21 +1,40 @@
+import { useMemo } from 'react';
 import { SukubOperationItem } from '@/lib/types';
 import {
     ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend
 } from 'recharts';
-import { Activity } from 'lucide-react';
+import { CONFIG } from '@/lib/config';
 
 export default function JejuOperationChart({ data }: { data: SukubOperationItem[] }) {
-    const rows = data.map(d => ({
-        ...d,
-        dateTime: `${d.tm.slice(4,6)}/${d.tm.slice(6,8)} ${d.tm.slice(8,10)}:${d.tm.slice(10,12)}`,
-        hour: `${d.tm.slice(8,10)}:${d.tm.slice(10,12)}`,
-    }));
+    const rows = useMemo(() => 
+        data.map(d => ({
+            ...d,
+            dateTime: `${d.tm.slice(4,6)}/${d.tm.slice(6,8)} ${d.tm.slice(8,10)}:${d.tm.slice(10,12)}`,
+            hour: `${d.tm.slice(8,10)}:${d.tm.slice(10,12)}`,
+        })),
+        [data]
+    );
+    
+    const hourlyRows = useMemo(() => 
+        rows.filter((_, index) => {
+            const minute = parseInt(rows[index].tm.slice(10, 12));
+            return minute === 0;
+        }),
+        [rows]
+    );
+    
+    const xAxisInterval = useMemo(() => 
+        Math.max(0, Math.floor(hourlyRows.length / CONFIG.CHART.MAX_XAXIS_TICKS) - 1),
+        [hourlyRows.length]
+    );
+    
+    const ticks = useMemo(() => hourlyRows.map(r => r.dateTime), [hourlyRows]);
 
     return (
-        <div className="w-full">
+        <div className="w-full" role="img" aria-label="제주 계통 운영 현황 차트">
             <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={rows} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                <LineChart data={rows} margin={CONFIG.CHART.MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis
                         dataKey="dateTime"
@@ -25,17 +44,8 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
                         tickMargin={8}
                         height={60}
                         axisLine={{ stroke: '#e5e7eb' }}
-                        interval={Math.max(0, Math.floor(rows.filter((_, index) => {
-                            const minute = parseInt(rows[index].tm.slice(10, 12));
-                            return minute === 0;
-                        }).length / 8) - 1)}
-                        ticks={rows
-                            .filter((_, index) => {
-                                const minute = parseInt(rows[index].tm.slice(10, 12));
-                                return minute === 0; // 정시(00분)만 표시
-                            })
-                            .map(r => r.dateTime)
-                        }
+                        interval={xAxisInterval}
+                        ticks={ticks}
                         label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: '#6b7280' } }}
                     />
                     {/* 좌측 Y축: 전력량 (MW) */}

@@ -5,7 +5,9 @@ export async function fetchWithTiming(url: string) {
     return { res, ms: t1 - t0 };
 }
 
-const BASE_URL = 'http://210.222.202.14:18080/api';
+import { CONFIG } from './config';
+
+const BASE_URL = CONFIG.API_BASE_URL;
 
 export const ENDPOINTS = {
     // 기상 예보 (forecast-predict)

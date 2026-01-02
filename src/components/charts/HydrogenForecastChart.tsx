@@ -1,16 +1,26 @@
+import { useMemo } from 'react';
 import { HgGenPredict } from '@/lib/types';
 import {
     ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis,
     Tooltip as RechartsTooltip, Legend
 } from 'recharts';
-import { Zap } from 'lucide-react';
+import { CONFIG } from '@/lib/config';
 
 export default function HydrogenForecastChart({ data }: { data: HgGenPredict[] }) {
-    const rows = data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' }));
+    const rows = useMemo(() => 
+        data.map(d => ({ ...d, hour: d.fcstTm.slice(8, 10) + ':00' })),
+        [data]
+    );
+    
+    const xAxisInterval = useMemo(() => 
+        Math.max(0, Math.floor(rows.length / CONFIG.CHART.MAX_XAXIS_TICKS) - 1),
+        [rows.length]
+    );
+    
     return (
-        <div className="w-full">
+        <div className="w-full" role="img" aria-label="수소 생산량 예측 차트">
             <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={rows} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                <AreaChart data={rows} margin={CONFIG.CHART.MARGIN}>
                     <defs>
                         <linearGradient id="gradQgen" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#ffffff" stopOpacity={0.4} />
@@ -29,7 +39,7 @@ export default function HydrogenForecastChart({ data }: { data: HgGenPredict[] }
                         angle={-45}
                         textAnchor="end"
                         height={60}
-                        interval={Math.max(0, Math.floor(rows.length / 8) - 1)}
+                        interval={xAxisInterval}
                         label={{ value: '시간', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: 12, fill: 'rgba(255, 255, 255, 0.8)' } }}
                     />
                     <YAxis 

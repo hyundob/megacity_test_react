@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { DemandPredict } from '@/lib/types';
 import {
     Chart as ChartJS,
@@ -12,6 +13,7 @@ import {
     type ChartOptions,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { CONFIG } from '@/lib/config';
 
 ChartJS.register(
     CategoryScale,
@@ -29,14 +31,17 @@ const FONT_FAMILY =
     "'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif";
 
 export default function DemandPredictChart({ data }: { data: DemandPredict[] }) {
-    const rows = data.map(d => ({
-        ...d,
-        hour: `${d.fcstTm.slice(4, 6)}/${d.fcstTm.slice(6, 8)} ${d.fcstTm.slice(8, 10)}:00`,
-    }));
+    const rows = useMemo(() => 
+        data.map(d => ({
+            ...d,
+            hour: `${d.fcstTm.slice(4, 6)}/${d.fcstTm.slice(6, 8)} ${d.fcstTm.slice(8, 10)}:00`,
+        })),
+        [data]
+    );
 
-    const labels = rows.map(r => r.hour);
+    const labels = useMemo(() => rows.map(r => r.hour), [rows]);
 
-    const chartData = {
+    const chartData = useMemo(() => ({
         labels,
         datasets: [
             {
@@ -80,7 +85,7 @@ export default function DemandPredictChart({ data }: { data: DemandPredict[] }) 
                 pointHoverRadius: 5,
             },
         ],
-    };
+    }), [labels, rows]);
 
     const options: ChartOptions<'line'> = {
         responsive: true,
@@ -161,7 +166,7 @@ export default function DemandPredictChart({ data }: { data: DemandPredict[] }) 
     };
 
     return (
-        <div className="w-full h-[260px]">
+        <div className="w-full h-[260px]" role="img" aria-label="전력 수요 예측 차트">
             <Line data={chartData} options={options} />
         </div>
     );

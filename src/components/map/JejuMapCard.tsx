@@ -4,12 +4,9 @@ import React, { useEffect, useRef } from 'react';
 import { MapPin, Thermometer, Wind, Compass, CloudRain, Cloud } from 'lucide-react';
 import { JejuRegion, JEJU_REGIONS } from '@/lib/types';
 import { formatWindDirection, formatSkyCondition } from '@/lib/utils';
-
-declare global {
-    interface Window {
-        kakao: any;
-    }
-}
+import type { MapInstance, MarkerInstance, MarkerOptions, CustomOverlayInstance } from '@/lib/types/kakao';
+import { CONFIG } from '@/lib/config';
+import type { JejuRegion } from '@/lib/types';
 
 interface JejuMapCardProps {
     selectedRegion: JejuRegion | null;
@@ -34,15 +31,15 @@ export default function JejuMapCard({
     sky
 }: JejuMapCardProps) {
     const mapContainer = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<any>(null);
-    const markersRef = useRef<any[]>([]);
+    const mapRef = useRef<MapInstance | null>(null);
+    const markersRef = useRef<Array<{ marker: MarkerInstance; overlay: CustomOverlayInstance; region: JejuRegion }>>([]);
     const [isMapLoaded, setIsMapLoaded] = React.useState(false);
 
     useEffect(() => {
         if (!mapContainer.current) return;
 
         let retryCount = 0;
-        const maxRetries = 50; // 최대 5초 대기
+        const maxRetries = CONFIG.MAP.MAX_RETRIES;
 
         // 카카오맵 스크립트 로드 대기
         const initMap = () => {
@@ -53,7 +50,7 @@ export default function JejuMapCard({
 
             if (!window.kakao || !window.kakao.maps) {
                 retryCount++;
-                setTimeout(initMap, 100);
+                setTimeout(initMap, CONFIG.MAP.RETRY_INTERVAL_MS);
                 return;
             }
 
@@ -71,8 +68,8 @@ export default function JejuMapCard({
                     const centerLng = (126.5312 + 126.5653 + 126.8800 + 126.1617) / 4; // 약 126.535
                     
                     const options = {
-                        center: new window.kakao.maps.LatLng(centerLat, centerLng), // 제주도 전체 중심
-                        level: 11, // 확대 레벨 (높을수록 넓게 보임, 낮을수록 확대)
+                        center: new window.kakao.maps.LatLng(centerLat, centerLng),
+                        level: CONFIG.MAP.DEFAULT_LEVEL,
                     };
 
                     const map = new window.kakao.maps.Map(container, options);
@@ -86,7 +83,7 @@ export default function JejuMapCard({
                         const isSelected = selectedRegion?.name === region.name;
                         
                         // 마커 생성 옵션
-                        const markerOptions: any = {
+                        const markerOptions: MarkerOptions = {
                             position: position,
                             map: map,
                             clickable: true,
