@@ -60,8 +60,10 @@ export default function RightColumn({
                     gradient={CARD_GRADIENTS.hydrogen}
                     shadowColor={SHADOW_COLORS.hydrogen}
                     textColor="light"
+                    glass
+                    glassColor="violet"
                 >
-                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm flex items-center justify-center">
+                    <div className="flex items-center justify-center">
                         <div className="w-full">
                             <HydrogenProductionCard
                                 lastItem={hgGenLastItem}
@@ -83,9 +85,11 @@ export default function RightColumn({
                     gradient={CARD_GRADIENTS.hydrogenForecast}
                     shadowColor={SHADOW_COLORS.hydrogenForecast}
                     textColor="light"
+                    glass
+                    glassColor="violet"
                 >
-                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm flex items-center justify-center min-h-[240px]">
-                        <div className="w-full max-w-full">
+                    <div className="flex items-center justify-center min-h-[240px]">
+                        <div className="w-full">
                             <HydrogenForecastChart data={hgGenPredictToday} />
                         </div>
                     </div>
@@ -94,79 +98,83 @@ export default function RightColumn({
 
             {/* 작은 KPI 카드들 2x2 그리드 */}
             <div className="grid grid-cols-2 gap-3">
-                <div className="kpi-card-blue p-4 text-white">
+                <div className="kpi-card kpi-card-blue p-4">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-10 h-10 bg-white/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <Zap className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-blue-500/15 rounded-xl flex items-center justify-center border border-blue-500/25">
+                            <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                     </div>
-                    <div className="text-xs text-white/80 mb-1 font-medium">현재 수요</div>
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1 font-medium">현재 수요</div>
+                    <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
                         {currentDemand ? `${Math.round(currentDemand).toLocaleString()}` : '--'}
                     </div>
-                    <div className="text-xs text-white/70">MW</div>
+                    <div className="text-xs text-slate-500">MW</div>
                 </div>
-                <div className="kpi-card-green p-4 text-white">
+                <div className="kpi-card kpi-card-green p-4">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-10 h-10 bg-white/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <Sun className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-emerald-500/15 rounded-xl flex items-center justify-center border border-emerald-500/25">
+                            <Sun className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
                     </div>
-                    <div className="text-xs text-white/80 mb-1 font-medium">신재생</div>
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1 font-medium">신재생</div>
+                    <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
                         {currentRenewable ? `${Math.round(currentRenewable).toLocaleString()}` : '--'}
                     </div>
-                    <div className="text-xs text-white/70">MW</div>
+                    <div className="text-xs text-slate-500">MW</div>
                 </div>
-                <div className="kpi-card-purple p-4 text-white">
+                <div className="kpi-card kpi-card-purple p-4">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-10 h-10 bg-white/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <TrendingUp className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-violet-500/15 rounded-xl flex items-center justify-center border border-violet-500/25">
+                            <TrendingUp className="w-5 h-5 text-violet-600 dark:text-violet-400" />
                         </div>
                     </div>
-                    <div className="text-xs text-white/80 mb-1 font-medium">재생 비율</div>
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1 font-medium">재생 비율</div>
+                    <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
                         {renewableRatio > 0 ? `${renewableRatio.toFixed(1)}` : '--'}
                     </div>
-                    <div className="text-xs text-white/70">%</div>
+                    <div className="text-xs text-slate-500">%</div>
                 </div>
-                <div className="kpi-card-cyan p-4 text-white">
+                <div className="kpi-card kpi-card-cyan p-4">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-10 h-10 bg-white/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <Battery className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-cyan-500/15 rounded-xl flex items-center justify-center border border-cyan-500/25">
+                            <Battery className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                         </div>
                     </div>
-                    <div className="text-xs text-white/80 mb-1 font-medium">수소 활용</div>
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1 font-medium">수소 활용</div>
+                    <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
                         {hydrogenUtil > 0 ? `${hydrogenUtil}` : '--'}
                     </div>
-                    <div className="text-xs text-white/70">%</div>
+                    <div className="text-xs text-slate-500">%</div>
                 </div>
             </div>
 
-            {/* 제주 운영 정보 카드 */}
+            {/* 계통 운영 정보 카드 */}
             {sukubOperation && (
-                <GradientCard
-                    title="제주 계통 운영 정보"
-                    subtitle="전력 시스템 현황"
-                    icon={Zap}
-                    gradient={CARD_GRADIENTS.jejuOperation}
-                    shadowColor={SHADOW_COLORS.jejuOperation}
-                    textColor="light"
-                >
+                <div className="p-6 glass-card glass-card-pink">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">계통 운영 정보</h2>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">전력 시스템 현황</p>
+                        </div>
+                        <div className="icon-box icon-box-pink">
+                            <Zap className="w-6 h-6 text-pink-500 dark:text-pink-400" />
+                        </div>
+                    </div>
                     <SukubInfoCard data={sukubOperation} dailyData={sukubOperationToday} />
-                </GradientCard>
+                </div>
             )}
 
             {/* 시스템 상태 카드 */}
-            <GradientCard
-                title="시스템 상태"
-                subtitle="서비스 응답 시간"
-                icon={Activity}
-                gradient={CARD_GRADIENTS.systemStatus}
-                shadowColor={SHADOW_COLORS.systemStatus}
-                textColor="dark"
-            >
+            <div className="p-6 glass-card glass-card-teal">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">시스템 상태</h2>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">서비스 응답 시간</p>
+                    </div>
+                    <div className="icon-box icon-box-teal">
+                        <Activity className="w-6 h-6 text-teal-500 dark:text-teal-400" />
+                    </div>
+                </div>
                 <SystemStatusCard
                     latApi={latApi}
                     latDb={latDb}
@@ -175,8 +183,7 @@ export default function RightColumn({
                     healthDb={healthDb}
                     healthPredict={healthPredict}
                 />
-            </GradientCard>
+            </div>
         </div>
     );
 }
-

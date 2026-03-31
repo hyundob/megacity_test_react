@@ -5,76 +5,66 @@ import { Cloud, Thermometer, Droplets, Wind, Gauge, Sun } from 'lucide-react';
 export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
     return (
         <div>
-            <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                    <Cloud className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                </div>
-                <div>
-                    <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">기상 예보 정보</h2>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">실시간 기상 데이터</p>
-                </div>
-            </div>
-            
             <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500 dark:text-gray-400">생성시간</span>
-                    <span className="font-medium dark:text-gray-200">{formatTime(data.crtnTm)}</span>
+                    <span className="text-slate-600 dark:text-slate-400">생성시간</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200">{formatTime(data.crtnTm)}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500 dark:text-gray-400">예측시간</span>
-                    <span className="font-medium dark:text-gray-200">{formatTime(data.fcstTm)}</span>
+                    <span className="text-slate-600 dark:text-slate-400">예측시간</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200">{formatTime(data.fcstTm)}</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900 rounded-lg border border-orange-100 dark:border-orange-800">
-                    <div className="w-7 h-7 bg-orange-100 dark:bg-orange-800 rounded-md flex items-center justify-center">
+                <div className="flex items-center gap-2 p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                    <div className="w-7 h-7 bg-orange-500/15 rounded-md flex items-center justify-center">
                         <Sun className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">일사량</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">일사량</div>
                         <div className="text-base font-bold text-orange-700 dark:text-orange-300">{data.fcstSrad?.toFixed(1) ?? 'N/A'} W/m²</div>
                     </div>
                 </div>
-                
-                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900 rounded-lg border border-red-100 dark:border-red-800">
-                    <div className="w-7 h-7 bg-red-100 dark:bg-red-800 rounded-md flex items-center justify-center">
+
+                <div className="flex items-center gap-2 p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                    <div className="w-7 h-7 bg-red-500/15 rounded-md flex items-center justify-center">
                         <Thermometer className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">기온</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">기온</div>
                         <div className="text-base font-bold text-red-700 dark:text-red-300">{data.fcstTemp?.toFixed(1) ?? 'N/A'}°C</div>
                     </div>
                 </div>
-                
-                <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-100 dark:border-blue-800">
-                    <div className="w-7 h-7 bg-blue-100 dark:bg-blue-800 rounded-md flex items-center justify-center">
+
+                <div className="flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                    <div className="w-7 h-7 bg-blue-500/15 rounded-md flex items-center justify-center">
                         <Droplets className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">습도</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">습도</div>
                         <div className="text-base font-bold text-blue-700 dark:text-blue-300">{data.fcstHumi?.toFixed(1) ?? 'N/A'}%</div>
                     </div>
                 </div>
-                
-                <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900 rounded-lg border border-green-100 dark:border-green-800">
-                    <div className="w-7 h-7 bg-green-100 dark:bg-green-800 rounded-md flex items-center justify-center">
-                        <Wind className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+
+                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                    <div className="w-7 h-7 bg-emerald-500/15 rounded-md flex items-center justify-center">
+                        <Wind className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">풍속</div>
-                        <div className="text-base font-bold text-green-700 dark:text-green-300">{data.fcstWspd?.toFixed(1) ?? 'N/A'} m/s</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">풍속</div>
+                        <div className="text-base font-bold text-emerald-700 dark:text-emerald-300">{data.fcstWspd?.toFixed(1) ?? 'N/A'} m/s</div>
                     </div>
                 </div>
             </div>
-            
-            <div className="mt-3 flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="w-7 h-7 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center">
-                    <Gauge className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+
+            <div className="mt-3 flex items-center gap-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg border border-black/8 dark:border-white/8">
+                <div className="w-7 h-7 bg-black/8 dark:bg-white/10 rounded-md flex items-center justify-center">
+                    <Gauge className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                 </div>
                 <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">기압</div>
-                    <div className="text-base font-bold text-gray-700 dark:text-gray-300">{data.fcstPsfc?.toFixed(1) ?? 'N/A'} hPa</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">기압</div>
+                    <div className="text-base font-bold text-slate-700 dark:text-slate-200">{data.fcstPsfc?.toFixed(1) ?? 'N/A'} hPa</div>
                 </div>
             </div>
         </div>

@@ -1,20 +1,130 @@
 @import "tailwindcss";
 
+/* ============================================
+   TAILWIND DARK MODE: class-based (.dark)
+   ============================================ */
+@variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   THEME VARIABLES
+   :root  = light mode defaults
+   .dark  = dark mode overrides
+   ============================================ */
 :root {
-  --background: #f8f9fa;
-  --foreground: #1a1a1a;
-  --primary-blue: #3182f6;
-  --primary-blue-light: #e3f2fd;
-  --gray-50: #f8f9fa;
-  --gray-100: #f1f3f4;
-  --gray-200: #e8eaed;
-  --gray-300: #dadce0;
-  --gray-400: #9aa0a6;
-  --gray-500: #5f6368;
-  --gray-600: #3c4043;
-  --gray-700: #202124;
-  --gray-800: #1a1a1a;
-  --gray-900: #0d1117;
+  /* Page background */
+  --bg-page:   #f0f4f8;
+  --bg-blob-1: rgba(59,  130, 246, 0.05);
+  --bg-blob-2: rgba(139,  92, 246, 0.04);
+  --bg-blob-3: rgba(6,   182, 212, 0.03);
+
+  /* Main dashboard container */
+  --container-bg:     rgba(255, 255, 255, 0.55);
+  --container-border: rgba(0, 0, 0, 0.06);
+  --container-shadow: 0 8px 40px -8px rgba(0, 0, 0, 0.12);
+
+  /* Navbar */
+  --nav-bg:     rgba(255, 255, 255, 0.92);
+  --nav-border: rgba(0, 0, 0, 0.08);
+  --nav-shadow: 0 0 20px -8px rgba(59, 130, 246, 0.10), 0 4px 16px -8px rgba(0, 0, 0, 0.08);
+
+  /* Glass card base */
+  --glass-bg:           rgba(255, 255, 255, 0.82);
+  --glass-border:       rgba(0, 0, 0, 0.09);
+  --glass-shadow-base:  0 2px 20px -6px rgba(0, 0, 0, 0.10);
+  --glass-shimmer:      rgba(255, 255, 255, 0.70);
+  --glass-hover-border: rgba(0, 0, 0, 0.15);
+
+  /* KPI cards */
+  --kpi-bg:     rgba(255, 255, 255, 0.85);
+  --kpi-border: rgba(0, 0, 0, 0.08);
+  --kpi-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.10);
+
+  /* .card compat */
+  --card-bg:     rgba(255, 255, 255, 0.88);
+  --card-border: rgba(0, 0, 0, 0.08);
+
+  /* Scrollbar */
+  --scroll-track: rgba(200, 210, 220, 0.5);
+  --scroll-thumb: rgba(148, 163, 184, 0.8);
+
+  /* Tailwind remapped gray scale → light mode */
+  --foreground:   #1e293b;
+  --background:   #f0f4f8;
+  --gray-50:  #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --primary-blue: #3b82f6;
+  --primary-blue-light: rgba(59, 130, 246, 0.12);
+  --bg-surface: rgba(255, 255, 255, 0.8);
+  --border-card: rgba(0, 0, 0, 0.09);
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+}
+
+.dark {
+  /* Page background */
+  --bg-page:   #060c1a;
+  --bg-blob-1: rgba(59,  130, 246, 0.07);
+  --bg-blob-2: rgba(139,  92, 246, 0.06);
+  --bg-blob-3: rgba(6,   182, 212, 0.04);
+
+  /* Main dashboard container */
+  --container-bg:     rgba(5, 10, 24, 0.50);
+  --container-border: rgba(255, 255, 255, 0.05);
+  --container-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.80);
+
+  /* Navbar */
+  --nav-bg:     rgba(8, 16, 36, 0.85);
+  --nav-border: rgba(255, 255, 255, 0.08);
+  --nav-shadow: 0 0 40px -15px rgba(59, 130, 246, 0.15), 0 20px 40px -20px rgba(0, 0, 0, 0.60);
+
+  /* Glass card base */
+  --glass-bg:           rgba(8, 16, 36, 0.85);
+  --glass-border:       rgba(255, 255, 255, 0.08);
+  --glass-shadow-base:  0 25px 50px -20px rgba(0, 0, 0, 0.50);
+  --glass-shimmer:      rgba(255, 255, 255, 0.12);
+  --glass-hover-border: rgba(255, 255, 255, 0.14);
+
+  /* KPI cards */
+  --kpi-bg:     rgba(15, 23, 42, 0.80);
+  --kpi-border: rgba(255, 255, 255, 0.08);
+  --kpi-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.50);
+
+  /* .card compat */
+  --card-bg:     rgba(10, 18, 40, 0.80);
+  --card-border: rgba(255, 255, 255, 0.08);
+
+  /* Scrollbar */
+  --scroll-track: rgba(15, 23, 42, 0.50);
+  --scroll-thumb: rgba(71, 85, 105, 0.80);
+
+  --foreground:   #e2e8f0;
+  --background:   #060c1a;
+  --gray-50:  #0f172a;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748b;
+  --gray-500: #94a3b8;
+  --gray-600: #cbd5e1;
+  --gray-700: #e2e8f0;
+  --gray-800: #f1f5f9;
+  --gray-900: #f8fafc;
+  --primary-blue: #3b82f6;
+  --primary-blue-light: rgba(59, 130, 246, 0.15);
+  --bg-surface: rgba(8, 16, 36, 0.75);
+  --border-card: rgba(255, 255, 255, 0.09);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
 }
 
 @theme inline {
@@ -24,9 +134,17 @@
   --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
+/* ============================================
+   BODY
+   ============================================ */
 body {
-  background: var(--gray-50);
-  color: var(--gray-800);
+  background-color: var(--bg-page);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 20%, var(--bg-blob-1) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 80% 80%, var(--bg-blob-2) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, var(--bg-blob-3) 0%, transparent 70%);
+  background-attachment: fixed;
+  color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
   font-weight: 400;
   line-height: 1.6;
@@ -34,298 +152,239 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Card with shadow effects */
-.card {
-  background: white;
+/* ============================================
+   DASHBOARD CONTAINER
+   ============================================ */
+.dashboard-container {
+  background: var(--container-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 1.5rem;
+  border-radius: 24px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--container-border);
+  box-shadow: var(--container-shadow);
+}
+
+/* ============================================
+   NAVBAR GLASS
+   ============================================ */
+.nav-glass {
+  background: var(--nav-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--nav-border);
+  box-shadow: var(--nav-shadow);
+}
+
+/* ============================================
+   GLASS CARD BASE
+   ============================================ */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-radius: 16px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--gray-200);
-  transition: all 0.2s ease-in-out;
-}
-
-.card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-/* Primary button */
-.btn-primary {
-  background: var(--primary-blue);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-  box-shadow: 0 4px 12px rgba(49, 130, 246, 0.4);
-}
-
-/* Status indicator */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.status-badge-success {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-badge-error {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-/* line-clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-base);
+  position: relative;
   overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Top shimmer line */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--glass-shimmer) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--gray-100);
-  border-radius: 3px;
+.glass-card:hover {
+  border-color: var(--glass-hover-border);
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
-  border-radius: 3px;
+/* ============================================
+   GLASS CARD COLOR VARIANTS — LIGHT MODE
+   ============================================ */
+.glass-card-blue   { border-color: rgba(59,  130, 246, 0.30); box-shadow: 0 0 30px -15px rgba(59,  130, 246, 0.14), var(--glass-shadow-base); }
+.glass-card-orange { border-color: rgba(249, 115,  22, 0.30); box-shadow: 0 0 30px -15px rgba(249, 115,  22, 0.12), var(--glass-shadow-base); }
+.glass-card-cyan   { border-color: rgba(6,   182, 212, 0.30); box-shadow: 0 0 30px -15px rgba(6,   182, 212, 0.12), var(--glass-shadow-base); }
+.glass-card-amber  { border-color: rgba(245, 158,  11, 0.30); box-shadow: 0 0 30px -15px rgba(245, 158,  11, 0.12), var(--glass-shadow-base); }
+.glass-card-emerald{ border-color: rgba(16,  185, 129, 0.30); box-shadow: 0 0 30px -15px rgba(16,  185, 129, 0.12), var(--glass-shadow-base); }
+.glass-card-violet { border-color: rgba(139,  92, 246, 0.30); box-shadow: 0 0 30px -15px rgba(139,  92, 246, 0.14), var(--glass-shadow-base); }
+.glass-card-pink   { border-color: rgba(236,  72, 153, 0.30); box-shadow: 0 0 30px -15px rgba(236,  72, 153, 0.12), var(--glass-shadow-base); }
+.glass-card-teal   { border-color: rgba(20,  184, 166, 0.30); box-shadow: 0 0 30px -15px rgba(20,  184, 166, 0.12), var(--glass-shadow-base); }
+
+.glass-card-blue::before   { background: linear-gradient(90deg, transparent 0%, rgba(59,  130, 246, 0.30) 50%, transparent 100%); }
+.glass-card-orange::before { background: linear-gradient(90deg, transparent 0%, rgba(249, 115,  22, 0.30) 50%, transparent 100%); }
+.glass-card-cyan::before   { background: linear-gradient(90deg, transparent 0%, rgba(6,   182, 212, 0.30) 50%, transparent 100%); }
+.glass-card-amber::before  { background: linear-gradient(90deg, transparent 0%, rgba(245, 158,  11, 0.30) 50%, transparent 100%); }
+.glass-card-emerald::before{ background: linear-gradient(90deg, transparent 0%, rgba(16,  185, 129, 0.30) 50%, transparent 100%); }
+.glass-card-violet::before { background: linear-gradient(90deg, transparent 0%, rgba(139,  92, 246, 0.30) 50%, transparent 100%); }
+.glass-card-pink::before   { background: linear-gradient(90deg, transparent 0%, rgba(236,  72, 153, 0.30) 50%, transparent 100%); }
+.glass-card-teal::before   { background: linear-gradient(90deg, transparent 0%, rgba(20,  184, 166, 0.30) 50%, transparent 100%); }
+
+/* ============================================
+   GLASS CARD COLOR VARIANTS — DARK MODE
+   ============================================ */
+.dark .glass-card-blue   { border-color: rgba(59,  130, 246, 0.22); box-shadow: 0 0 50px -20px rgba(59,  130, 246, 0.30), 0 25px 50px -20px rgba(0,0,0,0.60); }
+.dark .glass-card-orange { border-color: rgba(249, 115,  22, 0.22); box-shadow: 0 0 50px -20px rgba(249, 115,  22, 0.25), 0 25px 50px -20px rgba(0,0,0,0.60); }
+.dark .glass-card-cyan   { border-color: rgba(6,   182, 212, 0.22); box-shadow: 0 0 50px -20px rgba(6,   182, 212, 0.25), 0 25px 50px -20px rgba(0,0,0,0.60); }
+.dark .glass-card-amber  { border-color: rgba(245, 158,  11, 0.22); box-shadow: 0 0 50px -20px rgba(245, 158,  11, 0.25), 0 25px 50px -20px rgba(0,0,0,0.60); }
+.dark .glass-card-emerald{ border-color: rgba(16,  185, 129, 0.22); box-shadow: 0 0 50px -20px rgba(16,  185, 129, 0.25), 0 25px 50px -20px rgba(0,0,0,0.60); }
+.dark .glass-card-violet { border-color: rgba(139,  92, 246, 0.22); box-shadow: 0 0 50px -20px rgba(139,  92, 246, 0.30), 0 25px 50px -20px rgba(0,0,0,0.60); }
+.dark .glass-card-pink   { border-color: rgba(236,  72, 153, 0.22); box-shadow: 0 0 50px -20px rgba(236,  72, 153, 0.25), 0 25px 50px -20px rgba(0,0,0,0.60); }
+.dark .glass-card-teal   { border-color: rgba(20,  184, 166, 0.22); box-shadow: 0 0 50px -20px rgba(20,  184, 166, 0.25), 0 25px 50px -20px rgba(0,0,0,0.60); }
+
+.dark .glass-card-blue::before   { background: linear-gradient(90deg, transparent 0%, rgba(59,  130, 246, 0.50) 50%, transparent 100%); }
+.dark .glass-card-orange::before { background: linear-gradient(90deg, transparent 0%, rgba(249, 115,  22, 0.50) 50%, transparent 100%); }
+.dark .glass-card-cyan::before   { background: linear-gradient(90deg, transparent 0%, rgba(6,   182, 212, 0.50) 50%, transparent 100%); }
+.dark .glass-card-amber::before  { background: linear-gradient(90deg, transparent 0%, rgba(245, 158,  11, 0.50) 50%, transparent 100%); }
+.dark .glass-card-emerald::before{ background: linear-gradient(90deg, transparent 0%, rgba(16,  185, 129, 0.50) 50%, transparent 100%); }
+.dark .glass-card-violet::before { background: linear-gradient(90deg, transparent 0%, rgba(139,  92, 246, 0.50) 50%, transparent 100%); }
+.dark .glass-card-pink::before   { background: linear-gradient(90deg, transparent 0%, rgba(236,  72, 153, 0.50) 50%, transparent 100%); }
+.dark .glass-card-teal::before   { background: linear-gradient(90deg, transparent 0%, rgba(20,  184, 166, 0.50) 50%, transparent 100%); }
+
+/* ============================================
+   ICON BOX VARIANTS
+   ============================================ */
+.icon-box {
+  width: 3rem; height: 3rem;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.icon-box-blue    { background: rgba(59,  130, 246, 0.12); border-color: rgba(59,  130, 246, 0.28); }
+.icon-box-orange  { background: rgba(249, 115,  22, 0.12); border-color: rgba(249, 115,  22, 0.28); }
+.icon-box-cyan    { background: rgba(6,   182, 212, 0.12); border-color: rgba(6,   182, 212, 0.28); }
+.icon-box-amber   { background: rgba(245, 158,  11, 0.12); border-color: rgba(245, 158,  11, 0.28); }
+.icon-box-emerald { background: rgba(16,  185, 129, 0.12); border-color: rgba(16,  185, 129, 0.28); }
+.icon-box-violet  { background: rgba(139,  92, 246, 0.12); border-color: rgba(139,  92, 246, 0.28); }
+.icon-box-pink    { background: rgba(236,  72, 153, 0.12); border-color: rgba(236,  72, 153, 0.28); }
+.icon-box-teal    { background: rgba(20,  184, 166, 0.12); border-color: rgba(20,  184, 166, 0.28); }
+
+/* ============================================
+   LIVE INDICATOR PULSE
+   ============================================ */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(34, 197, 94, 0.6); }
+  50%       { opacity: 0.5; box-shadow: 0 0 12px rgba(34, 197, 94, 0.3); }
+}
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: live-pulse 2s ease-in-out infinite;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
-}
-
-/* Dashboard Section Headers */
-.dashboard-section {
-  margin-bottom: 1.25rem;
-}
-
-.dashboard-section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.dashboard-section-header h2 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--gray-800);
-  margin: 0;
-}
-
-.dashboard-section-header p {
-  font-size: 0.75rem;
-  color: var(--gray-500);
-  margin: 0;
-}
-
-/* KPI Cards - 화려한 스타일 */
+/* ============================================
+   KPI CARDS
+   ============================================ */
 .kpi-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: var(--kpi-bg);
   border-radius: 16px;
   padding: 1rem;
-  border: 1px solid var(--gray-200);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--kpi-border);
+  box-shadow: var(--kpi-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
-
 .kpi-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
+  top: 0; left: 0; right: 0;
+  height: 2px;
   background: linear-gradient(90deg, var(--primary-blue), #60a5fa);
 }
+.kpi-card:hover { transform: translateY(-2px); }
 
-.kpi-card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+/* Light mode KPI color variants */
+.kpi-card-blue   { background: linear-gradient(135deg, rgba(59,  130, 246, 0.08) 0%, rgba(37,  99, 235, 0.12) 100%); border: 1px solid rgba(59,  130, 246, 0.20); box-shadow: 0 0 20px -10px rgba(59,  130, 246, 0.15), 0 4px 16px -8px rgba(0,0,0,0.08); }
+.kpi-card-green  { background: linear-gradient(135deg, rgba(16,  185, 129, 0.08) 0%, rgba(5,  150, 105, 0.12) 100%); border: 1px solid rgba(16,  185, 129, 0.20); box-shadow: 0 0 20px -10px rgba(16,  185, 129, 0.15), 0 4px 16px -8px rgba(0,0,0,0.08); }
+.kpi-card-purple { background: linear-gradient(135deg, rgba(139,  92, 246, 0.08) 0%, rgba(124,  58, 237, 0.12) 100%); border: 1px solid rgba(139,  92, 246, 0.20); box-shadow: 0 0 20px -10px rgba(139,  92, 246, 0.15), 0 4px 16px -8px rgba(0,0,0,0.08); }
+.kpi-card-cyan   { background: linear-gradient(135deg, rgba(6,   182, 212, 0.08) 0%, rgba(8,  145, 178, 0.12) 100%); border: 1px solid rgba(6,   182, 212, 0.20); box-shadow: 0 0 20px -10px rgba(6,   182, 212, 0.15), 0 4px 16px -8px rgba(0,0,0,0.08); }
+
+.kpi-card-blue::before   { background: linear-gradient(90deg, #3b82f6, #93c5fd); }
+.kpi-card-green::before  { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+.kpi-card-purple::before { background: linear-gradient(90deg, #8b5cf6, #c4b5fd); }
+.kpi-card-cyan::before   { background: linear-gradient(90deg, #06b6d4, #67e8f9); }
+
+/* Dark mode KPI color variants */
+.dark .kpi-card-blue   { background: linear-gradient(135deg, rgba(59,  130, 246, 0.18) 0%, rgba(37,  99, 235, 0.25) 100%); border: 1px solid rgba(59,  130, 246, 0.25); box-shadow: 0 0 25px -10px rgba(59,  130, 246, 0.30), 0 10px 30px -15px rgba(0,0,0,0.50); }
+.dark .kpi-card-green  { background: linear-gradient(135deg, rgba(16,  185, 129, 0.18) 0%, rgba(5,  150, 105, 0.25) 100%); border: 1px solid rgba(16,  185, 129, 0.25); box-shadow: 0 0 25px -10px rgba(16,  185, 129, 0.30), 0 10px 30px -15px rgba(0,0,0,0.50); }
+.dark .kpi-card-purple { background: linear-gradient(135deg, rgba(139,  92, 246, 0.18) 0%, rgba(124,  58, 237, 0.25) 100%); border: 1px solid rgba(139,  92, 246, 0.25); box-shadow: 0 0 25px -10px rgba(139,  92, 246, 0.30), 0 10px 30px -15px rgba(0,0,0,0.50); }
+.dark .kpi-card-cyan   { background: linear-gradient(135deg, rgba(6,   182, 212, 0.18) 0%, rgba(8,  145, 178, 0.25) 100%); border: 1px solid rgba(6,   182, 212, 0.25); box-shadow: 0 0 25px -10px rgba(6,   182, 212, 0.30), 0 10px 30px -15px rgba(0,0,0,0.50); }
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 12px;
+  font-size: 11px; font-weight: 600;
 }
+.status-badge-success { background: rgba(34, 197, 94, 0.12); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.25); }
+.status-badge-error   { background: rgba(239, 68,  68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68,  68, 0.25); }
+.dark .status-badge-success { color: #4ade80; }
+.dark .status-badge-error   { color: #f87171; }
 
-/* 컬러풀한 KPI 카드 변형 */
-.kpi-card-blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  border: none;
-}
-
-.kpi-card-blue::before {
-  background: linear-gradient(90deg, #60a5fa, #93c5fd);
-}
-
-.kpi-card-green {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-}
-
-.kpi-card-green::before {
-  background: linear-gradient(90deg, #34d399, #6ee7b7);
-}
-
-.kpi-card-purple {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: white;
-  border: none;
-}
-
-.kpi-card-purple::before {
-  background: linear-gradient(90deg, #a78bfa, #c4b5fd);
-}
-
-.kpi-card-pink {
-  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-  color: white;
-  border: none;
-}
-
-.kpi-card-pink::before {
-  background: linear-gradient(90deg, #f472b6, #f9a8d4);
-}
-
-.kpi-card-yellow {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  border: none;
-}
-
-.kpi-card-yellow::before {
-  background: linear-gradient(90deg, #fbbf24, #fcd34d);
-}
-
-.kpi-card-cyan {
-  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-  color: white;
-  border: none;
-}
-
-.kpi-card-cyan::before {
-  background: linear-gradient(90deg, #22d3ee, #67e8f9);
-}
-
-.kpi-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--gray-800);
-  line-height: 1.2;
-  margin: 0.25rem 0;
-}
-
-.kpi-label {
-  font-size: 0.75rem;
-  color: var(--gray-500);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.kpi-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.5rem;
-}
-
-/* Dashboard Grid Improvements */
-.dashboard-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-}
-
-.dashboard-grid-large {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-}
-
-/* Card Enhancements - 화려한 스타일 */
+/* ============================================
+   .card (backwards compat)
+   ============================================ */
 .card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--gray-200);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--kpi-shadow);
+  border: 1px solid var(--card-border);
+  transition: all 0.2s ease-in-out;
   position: relative;
   overflow: hidden;
 }
-
 .card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
+  top: 0; left: 0; right: 0;
+  height: 2px;
   background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
+.card:hover { box-shadow: 0 8px 30px -8px rgba(0,0,0,0.15); }
+.card:hover::before { opacity: 1; }
 
-.card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
+.card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--card-border); }
+.card-header-icon { width: 2.5rem; height: 2.5rem; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--primary-blue-light); }
+.card-header-title    { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+.card-header-subtitle { font-size: 0.875rem; color: var(--text-secondary); margin: 0; }
 
-.card:hover::before {
-  opacity: 1;
-}
+/* ============================================
+   DASHBOARD LAYOUT
+   ============================================ */
+.dashboard-section { margin-bottom: 1.25rem; }
+.dashboard-section-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--card-border); }
+.dashboard-section-header h2 { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+.dashboard-section-header p  { font-size: 0.75rem; color: var(--text-secondary); margin: 0; }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--gray-200);
-}
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar           { width: 6px; height: 6px; }
+::-webkit-scrollbar-track     { background: var(--scroll-track); border-radius: 3px; }
+::-webkit-scrollbar-thumb     { background: var(--scroll-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { filter: brightness(1.1); }
 
-.card-header-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-blue-light);
-}
-
-.card-header-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--gray-800);
-  margin: 0;
-}
-
-.card-header-subtitle {
-  font-size: 0.875rem;
-  color: var(--gray-500);
-  margin: 0;
+/* ============================================
+   UTILITIES
+   ============================================ */
+.line-clamp-2 {
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
 }

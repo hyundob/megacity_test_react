@@ -60,7 +60,7 @@ export default function Page() {
     }, [d.setSelectedJejuRegion, d.loadJejuWeather]);
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen">
             <div className="max-w-[1920px] mx-auto p-3 sm:p-4">
                 <Navbar
                     lastUpdated={d.lastUpdated}
@@ -73,16 +73,7 @@ export default function Page() {
                 />
 
                 {/* 메인 대시보드 레이아웃 */}
-                <div
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-4"
-                    style={{
-                        background: CARD_GRADIENTS.mainBackground,
-                        padding: '1.5rem',
-                        borderRadius: '24px',
-                        marginBottom: '1.5rem',
-                        boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.1)'
-                    }}
-                >
+                <div className="dashboard-container grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <LeftColumn
                         currentDemand={kpi.currentDemand}
                         currentRenewable={kpi.currentRenewable}

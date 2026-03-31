@@ -12,7 +12,7 @@ export const CARD_GRADIENTS = {
     jejuOperation: 'linear-gradient(135deg, #e6d5d8 0%, #feaec3 100%)',
     systemStatus: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     forecast48h: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-    mainBackground: 'linear-gradient(135deg, #f0f9ff 0%, #fef3c7 15%, #fce7f3 30%, #e0e7ff 45%, #f0fdf4 60%, #fef3c7 75%, #f0f9ff 100%)'
+    mainBackground: 'linear-gradient(135deg, #060c1a 0%, #0a1128 100%)'
 } as const;
 
 export const SHADOW_COLORS = {

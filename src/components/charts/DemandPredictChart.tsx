@@ -1,37 +1,16 @@
 import { useMemo } from 'react';
 import { DemandPredict } from '@/lib/types';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler,
-    type ChartOptions,
-} from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { CONFIG } from '@/lib/config';
+import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler,
-);
-
-// globals.css의 --font-sans와 동일한 패밀리
-const FONT_FAMILY =
-    "'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif";
+registerChartJS();
 
 export default function DemandPredictChart({ data }: { data: DemandPredict[] }) {
-    const rows = useMemo(() => 
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    const rows = useMemo(() =>
         data.map(d => ({
             ...d,
             hour: `${d.fcstTm.slice(4, 6)}/${d.fcstTm.slice(6, 8)} ${d.fcstTm.slice(8, 10)}:00`,
@@ -87,83 +66,29 @@ export default function DemandPredictChart({ data }: { data: DemandPredict[] }) 
         ],
     }), [labels, rows]);
 
-    const options: ChartOptions<'line'> = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    usePointStyle: true,
-                    font: { size: 11, family: FONT_FAMILY },
-                    color: '#4b5563', // text-gray-600
-                },
-            },
-            tooltip: {
-                mode: 'index',
-                intersect: false,
-                backgroundColor: '#ffffff',
-                titleColor: '#111827',
-                bodyColor: '#111827',
-                borderColor: '#e5e7eb',
-                borderWidth: 1,
-                titleFont: { family: FONT_FAMILY, size: 12 },
-                bodyFont: { family: FONT_FAMILY, size: 12 },
-                callbacks: {
-                    title(items) {
-                        if (!items.length) return '';
-                        return `시간: ${items[0].label}`;
-                    },
-                    label(context) {
-                        const value = context.parsed.y;
-                        if (value == null || Number.isNaN(value)) return '';
-                        const formatted = (value as number)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                        return `${context.dataset.label} : ${formatted} MWh`;
+    const options = useMemo(() => {
+        const baseOptions = createChartOptions('전력량 (MWh)', isDark);
+        return {
+            ...baseOptions,
+            plugins: {
+                ...baseOptions.plugins,
+                tooltip: {
+                    ...baseOptions.plugins?.tooltip,
+                    callbacks: {
+                        ...baseOptions.plugins?.tooltip?.callbacks,
+                        label(context: any) {
+                            const value = context.parsed.y;
+                            if (value == null || Number.isNaN(value)) return '';
+                            const formatted = (value as number)
+                                .toFixed(2)
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            return `${context.dataset.label}: ${formatted} MWh`;
+                        },
                     },
                 },
             },
-        },
-        scales: {
-            x: {
-                ticks: {
-                    maxRotation: 45,
-                    minRotation: 45,
-                    color: '#6b7280', // text-gray-500
-                    font: { size: 10, family: FONT_FAMILY },
-                },
-                grid: {
-                    color: 'rgba(148, 163, 184, 0.25)', // slate-400, 연한 그리드
-                },
-            },
-            y: {
-                ticks: {
-                    color: '#6b7280',
-                    font: { size: 11, family: FONT_FAMILY },
-                    callback(value) {
-                        if (typeof value === 'number') {
-                            return value.toLocaleString();
-                        }
-                        return value;
-                    },
-                },
-                grid: {
-                    color: 'rgba(148, 163, 184, 0.25)',
-                },
-                title: {
-                    display: true,
-                    text: '전력량 (MWh)',
-                    color: '#4b5563',
-                    font: { size: 12, family: FONT_FAMILY },
-                },
-            },
-        },
-        interaction: {
-            mode: 'index',
-            intersect: false,
-        },
-    };
+        };
+    }, [isDark]);
 
     return (
         <div className="w-full h-[260px]" role="img" aria-label="전력 수요 예측 차트">
