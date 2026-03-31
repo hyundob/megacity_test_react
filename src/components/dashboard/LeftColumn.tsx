@@ -5,7 +5,7 @@ import { Zap, Activity, Cloud, TrendingUp } from 'lucide-react';
 import ForecastInfoCard from '../cards/ForecastInfoCard';
 import DemandPredictChart from '../charts/DemandPredictChart';
 import CurtChart from '../charts/CurtChart';
-import JejuMapCard from '../map/JejuMapCard';
+import {JejuMapCard} from '../map/JejuMapCard';
 import GradientCard from '../common/GradientCard';
 import { CARD_GRADIENTS, SHADOW_COLORS } from '@/lib/constants';
 import { ForecastPredict, JejuCurtPredict, DemandPredict, JejuRegion } from '@/lib/types';

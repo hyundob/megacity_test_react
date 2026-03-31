@@ -46,17 +46,18 @@ export interface MarkerOptions {
 }
 
 export interface MarkerImageOptions {
-    offset?: SizeInstance;
+    /** 이미지 내 앵커 좌표 (카카오맵 API: Point) */
+    offset?: PointInstance;
     alt?: string;
 }
 
-export interface MarkerImageInstance {
-    // MarkerImage 인스턴스
-}
+/** 카카오맵 SDK `MarkerImage` 인스턴스 (불투명 객체) */
+export type MarkerImageInstance = object;
 
 export interface MarkerInstance {
     setMap: (map: MapInstance | null) => void;
-    setImage: (image: MarkerImageInstance) => void;
+    /** null이면 기본 마커 이미지로 복원 */
+    setImage: (image: MarkerImageInstance | null) => void;
     getMap: () => MapInstance | null;
 }
 
