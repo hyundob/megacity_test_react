@@ -36,9 +36,11 @@ export function formatWindDirection(degrees: number | null | undefined): { text:
     ];
     
     for (const dir of directions) {
-        if (normalized >= dir.min || normalized < dir.max) {
-            return { text: dir.name, arrow: dir.arrow };
-        }
+        // 북(0°)처럼 wrap-around 구간(min > max)은 OR, 나머지는 AND
+        const inRange = dir.min > dir.max
+            ? normalized >= dir.min || normalized < dir.max
+            : normalized >= dir.min && normalized < dir.max;
+        if (inRange) return { text: dir.name, arrow: dir.arrow };
     }
     
     return { text: '북', arrow: '↑' }; // fallback

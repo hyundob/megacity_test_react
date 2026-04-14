@@ -96,6 +96,8 @@ export default function Page() {
                         demandPredict={d.demandPredict}
                         reGenPredictData={d.reGenPredictData}
                         windPredictData={d.windPredictData}
+                        currentDemand={kpi.currentDemand}
+                        currentRenewable={kpi.currentRenewable}
                     />
 
                     <RightColumn

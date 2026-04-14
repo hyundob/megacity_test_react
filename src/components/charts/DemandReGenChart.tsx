@@ -16,9 +16,12 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
+    const reGenMap = useMemo(() => new Map(reGenData.map(d => [d.fcstTm, d])), [reGenData]);
+    const windMap  = useMemo(() => new Map(windData.map(d => [d.fcstTm, d])), [windData]);
+
     const mergedData = useMemo(() => demandData.map(demand => {
-        const matchingSolar = reGenData.find(regen => regen.fcstTm === demand.fcstTm);
-        const matchingWind = windData.find(wind => wind.fcstTm === demand.fcstTm);
+        const matchingSolar = reGenMap.get(demand.fcstTm);
+        const matchingWind  = windMap.get(demand.fcstTm);
         const solarGen = matchingSolar ? matchingSolar.fcstQgen : 0;
         const windGen = matchingWind ? matchingWind.fcstQgen : 0;
         const totalRenewGen = solarGen + windGen;

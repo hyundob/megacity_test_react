@@ -7,7 +7,7 @@ export function calculateRenewableRatio(
     demand: number | null,
     renewable: number | null
 ): number {
-    if (!demand || demand <= 0 || !renewable) return 0;
+    if (demand === null || demand <= 0 || renewable === null) return 0;
     return (renewable / demand) * 100;
 }
 
