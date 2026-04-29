@@ -45,6 +45,36 @@ export default function LeftColumn({
 }: LeftColumnProps) {
     return (
         <div className="lg:col-span-4 space-y-4">
+            {/* 지도 카드 */}
+            <div className="p-6 glass-card glass-card-teal">
+                <JejuMapCard
+                    selectedRegion={selectedJejuRegion}
+                    onRegionSelect={onRegionSelect}
+                    tempC={ncstTempC}
+                    windMs={ncstWindMs}
+                    windDir={ncstWindDir}
+                    pty={ncstPty}
+                    ptyText={ncstPtyText}
+                    sky={ncstSky}
+                />
+            </div>
+
+            {/* 기상 정보 카드 */}
+            {forecastPredict && (
+                <div className="p-6 glass-card glass-card-cyan">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">기상 예보 정보</h2>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">실시간 기상 데이터</p>
+                        </div>
+                        <div className="icon-box icon-box-cyan">
+                            <Cloud className="w-6 h-6 text-cyan-500 dark:text-cyan-400" />
+                        </div>
+                    </div>
+                    <ForecastInfoCard data={forecastPredict} />
+                </div>
+            )}
+
             {/* 전력 수요 카드 */}
             <div className="p-6 glass-card glass-card-blue">
                 <div className="flex items-center justify-between mb-4">
@@ -97,35 +127,6 @@ export default function LeftColumn({
                 </GradientCard>
             )}
 
-            {/* 기상 정보 카드 */}
-            {forecastPredict && (
-                <div className="p-6 glass-card glass-card-cyan">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">기상 예보 정보</h2>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">실시간 기상 데이터</p>
-                        </div>
-                        <div className="icon-box icon-box-cyan">
-                            <Cloud className="w-6 h-6 text-cyan-500 dark:text-cyan-400" />
-                        </div>
-                    </div>
-                    <ForecastInfoCard data={forecastPredict} />
-                </div>
-            )}
-
-            {/* 지도 카드 */}
-            <div className="p-6 glass-card glass-card-teal">
-                <JejuMapCard
-                    selectedRegion={selectedJejuRegion}
-                    onRegionSelect={onRegionSelect}
-                    tempC={ncstTempC}
-                    windMs={ncstWindMs}
-                    windDir={ncstWindDir}
-                    pty={ncstPty}
-                    ptyText={ncstPtyText}
-                    sky={ncstSky}
-                />
-            </div>
         </div>
     );
 }
