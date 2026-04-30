@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { DemandPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
+import type { TooltipItem } from 'chart.js';
 import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
@@ -76,7 +77,7 @@ export default function DemandPredictChart({ data }: { data: DemandPredict[] }) 
                     ...baseOptions.plugins?.tooltip,
                     callbacks: {
                         ...baseOptions.plugins?.tooltip?.callbacks,
-                        label(context: any) {
+                        label(context: TooltipItem<'line'>) {
                             const value = context.parsed.y;
                             if (value == null || Number.isNaN(value)) return '';
                             const formatted = (value as number)

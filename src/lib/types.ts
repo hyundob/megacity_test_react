@@ -3,7 +3,7 @@ export type ForecastPredict = {
     crtnTm: string; fcstTm: string; areaGrpId: string; fcstSrad: number; fcstTemp: number;
     fcstHumi: number; fcstWspd: number; fcstPsfc: number;
 };
-``
+
 export type SukubOperation = {
     tm: string; suppAbility: number; currPwrTot: number;
     renewPwrTot: number; renewPwrSolar: number; renewPwrWind: number;

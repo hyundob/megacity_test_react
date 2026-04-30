@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { fetchWithTiming, ENDPOINTS, getJejuWeatherRegionUrl } from './api';
 import {
     ForecastPredict, SukubOperation, SukubOperationItem, ReGenPredict, DemandPredict, JejuCurtPredict,
@@ -56,7 +56,7 @@ export function useDashboardData() {
     const [ncstSky, setNcstSky] = useState<number | null>(null);
     const [selectedJejuRegion, setSelectedJejuRegion] = useState<JejuRegion>(JEJU_REGIONS[0]); // 기본값: 제주시
 
-    const load = async () => {
+    const load = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         
@@ -155,7 +155,7 @@ export function useDashboardData() {
                 setForecastPredictLast48h(sorted);
             }
         } catch (err) {
-            console.error('48시간 예보 데이터 로딩 실패:', err);
+            console.warn('48시간 예보 데이터 로딩 실패:', err);
         }
 
         // Weather via backend (nowcast + forecast) - 선택된 지역
@@ -174,7 +174,7 @@ export function useDashboardData() {
                 setNcstSky(typeof weatherJson.fcst_skyCode === 'number' ? weatherJson.fcst_skyCode : null);
             }
         } catch (err) {
-            console.error('제주 날씨 데이터 로딩 실패:', err);
+            console.warn('제주 날씨 데이터 로딩 실패:', err);
         }
 
         // 풍력 발전 예측 (별도 조회)
@@ -185,7 +185,7 @@ export function useDashboardData() {
                 setWindPredictData(arr);
             }
         } catch (err) {
-            console.error('풍력 발전 예측 데이터 로딩 실패:', err);
+            console.warn('풍력 발전 예측 데이터 로딩 실패:', err);
         }
         
         setLastUpdated(new Date().toLocaleString('ko-KR'));
@@ -196,9 +196,9 @@ export function useDashboardData() {
             setIsLoading(false);
             setApiStatus('error');
             setDbStatus('error');
-            console.error('Dashboard data load error:', err);
+            console.warn('Dashboard data load error:', err);
         }
-    };
+    }, [selectedJejuRegion.nx, selectedJejuRegion.ny]);
 
     // 클라이언트에서 localStorage 값 복원
     useEffect(() => {
@@ -230,7 +230,7 @@ export function useDashboardData() {
         return () => {
             if (id) clearInterval(id);
         };
-    }, [autoRefresh]);
+    }, [autoRefresh, load]);
 
     // 제주 날씨 별도 로드 함수
     const loadJejuWeather = async (region: JejuRegion) => {
@@ -261,6 +261,7 @@ export function useDashboardData() {
         alerts, latApi, latDb, latPredict, healthApi, healthDb, healthPredict, hgGenLatency,
         ncstTempC, ncstWindMs, ncstWindDir, ncstPty, ncstPtyText, ncstSky,
         lastUpdated, apiStatus, dbStatus,
+        error, isLoading,
         // 자동 새로고침
         autoRefresh, setAutoRefresh, load, isClient,
         // 제주 지역 선택

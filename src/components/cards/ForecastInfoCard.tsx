@@ -1,6 +1,6 @@
 import { ForecastPredict } from '@/lib/types';
 import { formatTime } from '@/lib/utils';
-import { Cloud, Thermometer, Droplets, Wind, Gauge, Sun } from 'lucide-react';
+import { Thermometer, Droplets, Wind, Gauge, Sun } from 'lucide-react';
 
 export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
     return (

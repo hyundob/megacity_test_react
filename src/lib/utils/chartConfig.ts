@@ -43,7 +43,6 @@ export function createChartOptions(
 ): ChartOptions<'line'> {
     const textColor   = isDark ? 'rgba(255,255,255,0.75)' : '#64748b';
     const gridColor   = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148,163,184,0.20)';
-    const axisColor   = isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0';
     const tooltipBg   = isDark ? 'rgba(8,16,36,0.95)'    : '#ffffff';
     const tooltipText = isDark ? '#e2e8f0'                 : '#111827';
     const tooltipBorder = isDark ? 'rgba(255,255,255,0.12)' : '#e5e7eb';

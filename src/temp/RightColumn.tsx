@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { Battery, Zap, TrendingUp, Sun, Activity } from 'lucide-react';
-import HydrogenProductionCard from '../cards/HydrogenProductionCard';
-import HydrogenForecastChart from '../charts/HydrogenForecastChart';
-import SukubInfoCard from '../cards/SukubInfoCard';
-import SystemStatusCard from '../system/SystemStatusCard';
-import GradientCard from '../common/GradientCard';
+import HydrogenProductionCard from '@/components/cards/HydrogenProductionCard';
+import HydrogenForecastChart from '@/components/charts/HydrogenForecastChart';
+import SukubInfoCard from '@/components/cards/SukubInfoCard';
+import SystemStatusCard from '@/components/system/SystemStatusCard';
+import GradientCard from '@/components/common/GradientCard';
 import { CARD_GRADIENTS, SHADOW_COLORS } from '@/lib/constants';
 import { HgGenInfo, HgGenPredict, SukubOperation, SukubOperationItem, ServiceHealth } from '@/lib/types';
 

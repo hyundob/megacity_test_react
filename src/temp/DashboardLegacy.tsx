@@ -148,7 +148,6 @@ function topHours(arr: EssPoint[], key: 'essChrg' | 'essDisc', k = 3): string[] 
 export default function Dashboard() {
     const [forecast, setForecast] = useState<Forecast | null>(null);
     const [sukubM, setSukubM] = useState<SukubM | null>(null);
-    const [sukubToday, setSukubToday] = useState<SukubMItem[]>([]);
     const [predictData, setPredictData] = useState<PredictSolar[]>([]);
     const [lastUpdated, setLastUpdated] = useState('');
     const [apiStatus, setApiStatus] = useState<'ok' | 'error'>('error');
@@ -250,7 +249,6 @@ export default function Dashboard() {
             setForecast(forecastData);
             setSukubM(sukubData);
             setPredictData(predict);
-            setSukubToday(sukubTodayData);
             setCurtToday(curtData);
             setGenToday(genFilter);
             setGemToday(gemFilter);

@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { Zap, TrendingUp, Sun, Wind, FlaskConical, AlertTriangle } from 'lucide-react';
-import JejuOperationChart from '../charts/JejuOperationChart';
-import DemandReGenChart from '../charts/DemandReGenChart';
-import SolarPredictChart from '../charts/SolarPredictChart';
-import WindPredictChart from '../charts/WindPredictChart';
+import JejuOperationChart from '@/components/charts/JejuOperationChart';
+import DemandReGenChart from '@/components/charts/DemandReGenChart';
+import SolarPredictChart from '@/components/charts/SolarPredictChart';
+import WindPredictChart from '@/components/charts/WindPredictChart';
 import { SukubOperationItem, DemandPredict, ReGenPredict } from '@/lib/types';
 
 interface CenterColumnProps {
@@ -88,7 +88,7 @@ export default function CenterColumn({
                 <div className="p-6 glass-card glass-card-violet">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">잉여 전력 수소 전환 시나리오</h2>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">잉여 전력 → 수소 전환 시나리오</h2>
                             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">재생에너지 발전 - 현재 수요 기반 추산</p>
                         </div>
                         <div className="icon-box icon-box-violet">

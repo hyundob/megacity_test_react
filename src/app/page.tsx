@@ -3,16 +3,21 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
 import { useDashboardData } from '@/lib/useDashboardData';
 import { useKPICalculations } from '@/lib/hooks/useKPICalculations';
-import { CARD_GRADIENTS } from '@/lib/constants';
 import Navbar from '../components/navbar/Navbar';
-import LeftColumn from '../components/dashboard/LeftColumn';
-import CenterColumn from '../components/dashboard/CenterColumn';
-import RightColumn from '../components/dashboard/RightColumn';
-import Forecast48hSection from '../components/dashboard/Forecast48hSection';
+import DashboardGrid from '../components/dashboard/DashboardGrid';
+import { buildDashboardWidgets } from '../components/dashboard/DashboardWidgets';
+import type { JejuRegion } from '@/lib/types';
 import './globals.css';
 
 export default function Page() {
     const d = useDashboardData();
+    const {
+        autoRefresh,
+        setAutoRefresh,
+        load,
+        setSelectedJejuRegion,
+        loadJejuWeather,
+    } = d;
     const [selectedAreaGrpId, setSelectedAreaGrpId] = React.useState<string>('');
 
     // KPI 계산
@@ -23,12 +28,12 @@ export default function Page() {
 
     // 이벤트 핸들러
     const handleToggleAutoRefresh = useCallback(() => {
-        d.setAutoRefresh(!d.autoRefresh);
-    }, [d.autoRefresh, d.setAutoRefresh]);
+        setAutoRefresh(!autoRefresh);
+    }, [autoRefresh, setAutoRefresh]);
 
     const handleManualRefresh = useCallback(() => {
-        d.load();
-    }, [d.load]);
+        load();
+    }, [load]);
 
     const handleAreaGrpIdChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedAreaGrpId(e.target.value);
@@ -53,11 +58,29 @@ export default function Page() {
         return d.forecastPredictLast48h.filter(item => item.areaGrpId === selectedAreaGrpId);
     }, [d.forecastPredictLast48h, selectedAreaGrpId]);
 
-    const handleRegionSelect = useCallback(async (region: NonNullable<typeof d.selectedJejuRegion>) => {
+    const handleRegionSelect = useCallback(async (region: JejuRegion) => {
         if (!region) return;
-        d.setSelectedJejuRegion(region);
-        await d.loadJejuWeather(region);
-    }, [d.setSelectedJejuRegion, d.loadJejuWeather]);
+        setSelectedJejuRegion(region);
+        await loadJejuWeather(region);
+    }, [setSelectedJejuRegion, loadJejuWeather]);
+
+    const widgets = useMemo(() => buildDashboardWidgets({
+        data: d,
+        kpi,
+        selectedAreaGrpId,
+        areaGrpIds,
+        filteredForecastData: filteredData,
+        onAreaGrpIdChange: handleAreaGrpIdChange,
+        onRegionSelect: handleRegionSelect,
+    }), [
+        d,
+        kpi,
+        selectedAreaGrpId,
+        areaGrpIds,
+        filteredData,
+        handleAreaGrpIdChange,
+        handleRegionSelect,
+    ]);
 
     return (
         <div className="min-h-screen">
@@ -72,63 +95,7 @@ export default function Page() {
                     alerts={d.alerts}
                 />
 
-                {/* 메인 대시보드 레이아웃 */}
-                <div className="dashboard-container grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <LeftColumn
-                        currentDemand={kpi.currentDemand}
-                        currentRenewable={kpi.currentRenewable}
-                        renewableRatio={kpi.renewableRatio}
-                        demandPredict={d.demandPredict}
-                        jejuCurtPredictToday={d.jejuCurtPredictToday}
-                        forecastPredict={d.forecastPredict}
-                        selectedJejuRegion={d.selectedJejuRegion}
-                        onRegionSelect={handleRegionSelect}
-                        ncstTempC={d.ncstTempC}
-                        ncstWindMs={d.ncstWindMs}
-                        ncstWindDir={d.ncstWindDir}
-                        ncstPty={d.ncstPty}
-                        ncstPtyText={d.ncstPtyText}
-                        ncstSky={d.ncstSky}
-                    />
-
-                    <CenterColumn
-                        sukubOperationToday={d.sukubOperationToday}
-                        demandPredict={d.demandPredict}
-                        reGenPredictData={d.reGenPredictData}
-                        windPredictData={d.windPredictData}
-                        currentDemand={kpi.currentDemand}
-                        currentRenewable={kpi.currentRenewable}
-                    />
-
-                    <RightColumn
-                        hgGenLastItem={d.hgGenLastItem}
-                        hgGenUtilPct={d.hgGenUtilPct}
-                        hgGenLatency={d.hgGenLatency}
-                        hgGenInfoToday={d.hgGenInfoToday}
-                        hgGenPredictToday={d.hgGenPredictToday}
-                        sukubOperation={d.sukubOperation}
-                        sukubOperationToday={d.sukubOperationToday}
-                        currentDemand={kpi.currentDemand}
-                        currentRenewable={kpi.currentRenewable}
-                        renewableRatio={kpi.renewableRatio}
-                        hydrogenUtil={kpi.hydrogenUtil}
-                        latApi={d.latApi}
-                        latDb={d.latDb}
-                        latPredict={d.latPredict}
-                        healthApi={d.healthApi}
-                        healthDb={d.healthDb}
-                        healthPredict={d.healthPredict}
-                    />
-                </div>
-
-                {/* 하단: 기상 예보 상세 전체폭 */}
-                <Forecast48hSection
-                    forecastPredictLast48h={d.forecastPredictLast48h}
-                    filteredData={filteredData}
-                    selectedAreaGrpId={selectedAreaGrpId}
-                    areaGrpIds={areaGrpIds}
-                    onAreaGrpIdChange={handleAreaGrpIdChange}
-                />
+                <DashboardGrid widgets={widgets} />
             </div>
         </div>
     );

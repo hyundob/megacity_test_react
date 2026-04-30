@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { DemandPredict, ReGenPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
+import type { TooltipItem } from 'chart.js';
 import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
@@ -32,7 +33,7 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
             solarGen: solarGen > 0 ? solarGen : null,
             windGen: windGen > 0 ? windGen : null,
         };
-    }), [demandData, reGenData, windData]);
+    }), [demandData, reGenMap, windMap]);
 
     const labels = useMemo(() => mergedData.map(d => d.hour), [mergedData]);
 
@@ -74,7 +75,7 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
                     ...baseOptions.plugins?.tooltip,
                     callbacks: {
                         ...baseOptions.plugins?.tooltip?.callbacks,
-                        label(context: any) {
+                        label(context: TooltipItem<'line'>) {
                             const value = context.parsed.y;
                             if (value == null || Number.isNaN(value)) return '';
                             const formatted = (value as number)

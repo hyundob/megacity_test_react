@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Cloud } from 'lucide-react';
-import ForecastLast48hChart from '../charts/ForecastLast48hChart';
+import ForecastLast48hChart from '@/components/charts/ForecastLast48hChart';
 import { ForecastPredict } from '@/lib/types';
 
 interface Forecast48hSectionProps {
