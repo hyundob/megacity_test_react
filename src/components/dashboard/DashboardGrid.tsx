@@ -110,6 +110,12 @@ function compactLayout(layout: DashboardLayoutItem[], pinnedId?: DashboardWidget
 
     for (const item of sortLayout(layout.filter(layoutItem => layoutItem.id !== pinnedId))) {
         let candidate = clampLayoutItem(item);
+        let guard = 0;
+
+        while (hasCollision(candidate, placed) && guard < layout.length * 4) {
+            candidate = clampLayoutItem({ ...candidate, y: candidate.y + 1 });
+            guard += 1;
+        }
 
         while (candidate.y > 0) {
             const moved = { ...candidate, y: candidate.y - 1 };
@@ -170,8 +176,12 @@ function moveWithSwap(
         });
         const remaining = others.filter(item => item.id !== primaryCollision.id);
 
-        if (!hasCollision(swappedItem, remaining) && !hasCollision(movingItem, remaining)) {
-            return compactLayout([movingItem, swappedItem, ...remaining], movingId);
+        if (
+            !collides(movingItem, swappedItem) &&
+            !hasCollision(swappedItem, remaining) &&
+            !hasCollision(movingItem, remaining)
+        ) {
+            return sortLayout([movingItem, swappedItem, ...remaining]);
         }
     }
 

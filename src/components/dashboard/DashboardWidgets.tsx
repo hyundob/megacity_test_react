@@ -4,7 +4,6 @@ import React from 'react';
 import {
     Activity,
     AlertTriangle,
-    Battery,
     Cloud,
     FlaskConical,
     Sun,
@@ -32,6 +31,25 @@ import type { ForecastPredict, JejuRegion } from '@/lib/types';
 type DashboardData = ReturnType<typeof useDashboardData>;
 type KpiData = ReturnType<typeof useKPICalculations>;
 type WidgetColor = 'blue' | 'orange' | 'cyan' | 'amber' | 'emerald' | 'violet' | 'pink' | 'teal';
+
+const H2_PRODUCTION_KG_PER_KWH = 0.115;
+const H2_STORAGE_MAX_KG = 1000;
+
+function calculateSurplusHydrogenKg(kpi: KpiData) {
+    const surplusMW = kpi.currentRenewable != null && kpi.currentDemand != null
+        ? kpi.currentRenewable - kpi.currentDemand
+        : null;
+    const surplusKW = surplusMW != null ? surplusMW * 1000 : null;
+    const h2EstimateRaw = surplusKW != null && surplusKW > 0
+        ? surplusKW * H2_PRODUCTION_KG_PER_KWH
+        : null;
+
+    return {
+        surplusMW,
+        h2EstimateRaw,
+        h2Estimate: h2EstimateRaw != null ? Math.min(h2EstimateRaw, H2_STORAGE_MAX_KG) : null,
+    };
+}
 
 interface BuildDashboardWidgetsArgs {
     data: DashboardData;
@@ -153,7 +171,7 @@ function CurtWidget({ data }: { data: DashboardData }) {
 
 function WeatherWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="기상 예보 정보" subtitle="실시간 기상 데이터" icon={Cloud} color="cyan">
+        <WidgetCard title="수소생산단지 기상 예측" subtitle="일간 NWP 예측 자료" icon={Cloud} color="cyan">
             {data.forecastPredict ? <ForecastInfoCard data={data.forecastPredict} /> : <EmptyState />}
         </WidgetCard>
     );
@@ -209,13 +227,8 @@ function DemandReGenWidget({ data }: { data: DashboardData }) {
 }
 
 function HydrogenScenarioWidget({ kpi }: { kpi: KpiData }) {
-    const surplusMW = kpi.currentRenewable != null && kpi.currentDemand != null
-        ? kpi.currentRenewable - kpi.currentDemand
-        : null;
-    const surplusKW = surplusMW != null ? surplusMW * 1000 : null;
-    const h2Low = surplusKW != null && surplusKW > 0 ? surplusKW / 55 : null;
-    const h2Mid = surplusKW != null && surplusKW > 0 ? surplusKW / 52.5 : null;
-    const h2High = surplusKW != null && surplusKW > 0 ? surplusKW / 50 : null;
+    const { surplusMW, h2EstimateRaw, h2Estimate } = calculateSurplusHydrogenKg(kpi);
+    const isStorageMaxReached = h2EstimateRaw != null && h2EstimateRaw > H2_STORAGE_MAX_KG;
 
     return (
         <WidgetCard title="잉여 전력 기반 수소 전환" subtitle="재생에너지 발전 - 현재 수요 기반 추산" icon={FlaskConical} color="violet">
@@ -235,12 +248,18 @@ function HydrogenScenarioWidget({ kpi }: { kpi: KpiData }) {
                         </div>
                     </div>
 
-                    {h2Low != null && h2Mid != null && h2High != null ? (
+                    {h2Estimate != null ? (
                         <div className="space-y-2">
                             <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-3">수소 생산량 추산 (kg/h)</p>
-                            <ScenarioBar label="고효율 (50 kWh/kg)" value={h2High} percent={100} tone="bg-violet-500" />
-                            <ScenarioBar label="평균 (52.5 kWh/kg)" value={h2Mid} percent={(h2Mid / h2High) * 100} tone="bg-violet-400" />
-                            <ScenarioBar label="저효율 (55 kWh/kg)" value={h2Low} percent={(h2Low / h2High) * 100} tone="bg-violet-300" />
+                            <ScenarioBar label="기준 계수" value={h2Estimate} percent={100} tone="bg-violet-500" />
+                            {isStorageMaxReached && (
+                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                                    저장용기 최대치 1,000kg 제한이 적용되었습니다.
+                                </p>
+                            )}
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                                계산식: 잉여 전력(kW) x 0.115 kg/kWh
+                            </p>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2 text-sm text-rose-500 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-4 py-3">
@@ -283,13 +302,15 @@ function WindWidget({ data }: { data: DashboardData }) {
 }
 
 function KpiWidget({ kpi }: { kpi: KpiData }) {
+    const { h2Estimate } = calculateSurplusHydrogenKg(kpi);
+
     return (
         <WidgetCard title="KPI" subtitle="핵심 지표" icon={TrendingUp} color="cyan">
             <div className="grid grid-cols-2 gap-3">
                 <KpiTile icon={Zap} color="blue" label="현재 수요" value={kpi.currentDemand} unit="MW" />
                 <KpiTile icon={Sun} color="green" label="신재생" value={kpi.currentRenewable} unit="MW" />
                 <KpiTile icon={TrendingUp} color="purple" label="재생 비율" value={kpi.renewableRatio > 0 ? kpi.renewableRatio : null} unit="%" decimals={1} />
-                <KpiTile icon={Battery} color="cyan" label="수소 활용" value={kpi.hydrogenUtil > 0 ? kpi.hydrogenUtil : null} unit="%" />
+                <KpiTile icon={FlaskConical} color="cyan" label="수소 전환" value={h2Estimate} unit="kg/h" />
             </div>
         </WidgetCard>
     );
@@ -336,7 +357,7 @@ function Forecast48hWidget({
     onAreaGrpIdChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }) {
     return (
-        <WidgetCard title="최근 48시간 기상 예보" subtitle="지역별 기온/일사량/풍속 트렌드" icon={Cloud} color="violet">
+        <WidgetCard title="최근 48시간 수소단지 기상 예측" subtitle="영역별 기온/일사량/풍속 트렌드" icon={Cloud} color="violet">
             {data.forecastPredictLast48h.length > 0 ? (
                 <ChartShell>
                     <ForecastLast48hChart
@@ -367,6 +388,10 @@ function MetricTile({ label, value, unit }: { label: string; value: number | nul
 }
 
 function ScenarioBar({ label, value, percent, tone }: { label: string; value: number; percent: number; tone: string }) {
+    const formattedValue = value.toLocaleString('ko-KR', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    });
     return (
         <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500 w-24 shrink-0">{label}</span>
@@ -374,7 +399,7 @@ function ScenarioBar({ label, value, percent, tone }: { label: string; value: nu
                 <div className={`${tone} h-2 rounded-full`} style={{ width: `${percent}%` }} />
             </div>
             <span className="text-sm font-bold text-violet-600 dark:text-violet-400 w-20 text-right">
-                {value.toFixed(1)}
+                {formattedValue}
             </span>
         </div>
     );
@@ -432,7 +457,7 @@ export function buildDashboardWidgets({
         { id: 'operation', title: '전력 운영', node: <OperationWidget data={data} /> },
         { id: 'curt', title: '출력제어', node: <CurtWidget data={data} /> },
         { id: 'demand-regen', title: '수요 vs 재생에너지', node: <DemandReGenWidget data={data} /> },
-        { id: 'weather', title: '기상 예보 정보', node: <WeatherWidget data={data} /> },
+        { id: 'weather', title: '수소생산단지 기상 예측', node: <WeatherWidget data={data} /> },
         { id: 'hydrogen-scenario', title: '수소 전환', node: <HydrogenScenarioWidget kpi={kpi} /> },
         { id: 'kpi', title: 'KPI', node: <KpiWidget kpi={kpi} /> },
         { id: 'jeju-map', title: '제주 지역', node: <JejuMapWidget data={data} onRegionSelect={onRegionSelect} /> },
@@ -442,7 +467,7 @@ export function buildDashboardWidgets({
         { id: 'system-status', title: '시스템 상태', node: <SystemStatusWidget data={data} /> },
         {
             id: 'forecast-48h',
-            title: '최근 48시간 기상 예보',
+            title: '최근 48시간 수소단지 기상 예측',
             node: (
                 <Forecast48hWidget
                     data={data}

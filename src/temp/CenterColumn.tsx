@@ -25,16 +25,17 @@ export default function CenterColumn({
     currentDemand,
     currentRenewable,
 }: CenterColumnProps) {
+    const H2_PRODUCTION_KG_PER_KWH = 0.115;
     // 잔여 전력 계산 (MW)
     const surplusMW = (currentRenewable != null && currentDemand != null)
         ? currentRenewable - currentDemand
         : null;
     const surplusKW = surplusMW != null ? surplusMW * 1000 : null;
 
-    // 수소 생산량 시나리오 (kg/h) — 효율 50 / 52.5 / 55 kWh/kg
-    const h2Low  = surplusKW != null && surplusKW > 0 ? surplusKW / 55  : null;
-    const h2Mid  = surplusKW != null && surplusKW > 0 ? surplusKW / 52.5 : null;
-    const h2High = surplusKW != null && surplusKW > 0 ? surplusKW / 50  : null;
+    // 수소 생산량 추산 (kg/h) — 고정 계수 0.115 kg/kWh
+    const h2Estimate = surplusKW != null && surplusKW > 0
+        ? surplusKW * H2_PRODUCTION_KG_PER_KWH
+        : null;
     return (
         <div className="lg:col-span-5 space-y-4">
             {/* 전력 운영 카드 */}
@@ -123,39 +124,21 @@ export default function CenterColumn({
                         </div>
                     </div>
 
-                    {/* 수소 생산 시나리오 */}
-                    {h2Low != null && h2Mid != null && h2High != null ? (
+                    {/* 수소 생산량 추산 */}
+                    {h2Estimate != null ? (
                         <div className="space-y-2">
                             <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-3">수소 생산량 추산 (kg/h)</p>
                             <div className="flex items-center gap-3">
-                                <span className="text-xs text-slate-500 w-20 shrink-0">고효율 (50 kWh/kg)</span>
+                                <span className="text-xs text-slate-500 w-20 shrink-0">기준 계수</span>
                                 <div className="flex-1 bg-black/10 dark:bg-white/10 rounded-full h-2">
                                     <div className="bg-violet-500 h-2 rounded-full" style={{ width: '100%' }} />
                                 </div>
                                 <span className="text-sm font-bold text-violet-600 dark:text-violet-400 w-20 text-right">
-                                    {h2High!.toFixed(1)} kg/h
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs text-slate-500 w-20 shrink-0">평균 (52.5 kWh/kg)</span>
-                                <div className="flex-1 bg-black/10 dark:bg-white/10 rounded-full h-2">
-                                    <div className="bg-violet-400 h-2 rounded-full" style={{ width: `${(h2Mid / h2High!) * 100}%` }} />
-                                </div>
-                                <span className="text-sm font-bold text-violet-500 dark:text-violet-300 w-20 text-right">
-                                    {h2Mid.toFixed(1)} kg/h
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs text-slate-500 w-20 shrink-0">저효율 (55 kWh/kg)</span>
-                                <div className="flex-1 bg-black/10 dark:bg-white/10 rounded-full h-2">
-                                    <div className="bg-violet-300 h-2 rounded-full" style={{ width: `${(h2Low! / h2High!) * 100}%` }} />
-                                </div>
-                                <span className="text-sm font-bold text-slate-600 dark:text-slate-300 w-20 text-right">
-                                    {h2Low!.toFixed(1)} kg/h
+                                    {h2Estimate.toFixed(1)} kg/h
                                 </span>
                             </div>
                             <p className="text-xs text-slate-400 dark:text-slate-500 mt-3">
-                                * 수전해 효율 50~55 kWh/kg 가정 · 실제 설비 사양에 따라 달라질 수 있음
+                                * 계산식: 잉여 전력(kW) x 0.115 kg/kWh
                             </p>
                         </div>
                     ) : (

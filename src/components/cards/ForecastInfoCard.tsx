@@ -1,6 +1,6 @@
 import { ForecastPredict } from '@/lib/types';
 import { formatTime } from '@/lib/utils';
-import { Thermometer, Droplets, Wind, Gauge, Sun } from 'lucide-react';
+import { Droplets, Gauge, Sun, Thermometer, Wind } from 'lucide-react';
 
 export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
     return (
@@ -17,54 +17,89 @@ export default function ForecastInfoCard({ data }: { data: ForecastPredict }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                    <div className="w-7 h-7 bg-orange-500/15 rounded-md flex items-center justify-center">
-                        <Sun className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">일사량</div>
-                        <div className="text-base font-bold text-orange-700 dark:text-orange-300">{data.fcstSrad?.toFixed(1) ?? 'N/A'} W/m²</div>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                    <div className="w-7 h-7 bg-red-500/15 rounded-md flex items-center justify-center">
-                        <Thermometer className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
-                    </div>
-                    <div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">기온</div>
-                        <div className="text-base font-bold text-red-700 dark:text-red-300">{data.fcstTemp?.toFixed(1) ?? 'N/A'}°C</div>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                    <div className="w-7 h-7 bg-blue-500/15 rounded-md flex items-center justify-center">
-                        <Droplets className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">습도</div>
-                        <div className="text-base font-bold text-blue-700 dark:text-blue-300">{data.fcstHumi?.toFixed(1) ?? 'N/A'}%</div>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                    <div className="w-7 h-7 bg-emerald-500/15 rounded-md flex items-center justify-center">
-                        <Wind className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">풍속</div>
-                        <div className="text-base font-bold text-emerald-700 dark:text-emerald-300">{data.fcstWspd?.toFixed(1) ?? 'N/A'} m/s</div>
-                    </div>
-                </div>
+                <ForecastMetric
+                    icon={Sun}
+                    label="일사량"
+                    value={data.fcstSrad}
+                    unit="W/m2"
+                    tone="orange"
+                />
+                <ForecastMetric
+                    icon={Thermometer}
+                    label="기온"
+                    value={data.fcstTemp}
+                    unit="C"
+                    tone="red"
+                />
+                <ForecastMetric
+                    icon={Droplets}
+                    label="습도"
+                    value={data.fcstHumi}
+                    unit="%"
+                    tone="blue"
+                />
+                <ForecastMetric
+                    icon={Wind}
+                    label="풍속"
+                    value={data.fcstWspd}
+                    unit="m/s"
+                    tone="emerald"
+                />
             </div>
 
-            <div className="mt-3 flex items-center gap-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg border border-black/8 dark:border-white/8">
-                <div className="w-7 h-7 bg-black/8 dark:bg-white/10 rounded-md flex items-center justify-center">
-                    <Gauge className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                </div>
-                <div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">기압</div>
-                    <div className="text-base font-bold text-slate-700 dark:text-slate-200">{data.fcstPsfc?.toFixed(1) ?? 'N/A'} hPa</div>
+            <div className="mt-3">
+                <ForecastMetric
+                    icon={Gauge}
+                    label="기압"
+                    value={data.fcstPsfc}
+                    unit="hPa"
+                    tone="slate"
+                    wide
+                />
+            </div>
+        </div>
+    );
+}
+
+function ForecastMetric({
+    icon: Icon,
+    label,
+    value,
+    unit,
+    tone,
+    wide = false,
+}: {
+    icon: typeof Sun;
+    label: string;
+    value: number;
+    unit: string;
+    tone: 'orange' | 'red' | 'blue' | 'emerald' | 'slate';
+    wide?: boolean;
+}) {
+    const toneClasses = {
+        orange: 'bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-300',
+        red: 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-300',
+        blue: 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-300',
+        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-300',
+        slate: 'bg-black/5 border-black/8 text-slate-700 dark:bg-white/5 dark:border-white/8 dark:text-slate-200',
+    };
+    const iconClasses = {
+        orange: 'bg-orange-500/15 text-orange-600 dark:text-orange-400',
+        red: 'bg-red-500/15 text-red-600 dark:text-red-400',
+        blue: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+        emerald: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+        slate: 'bg-black/8 text-slate-500 dark:bg-white/10 dark:text-slate-400',
+    };
+
+    return (
+        <div className={`flex items-center gap-2 rounded-lg border p-3 ${toneClasses[tone]} ${wide ? 'w-full' : ''}`}>
+            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${iconClasses[tone]}`}>
+                <Icon className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0">
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-400">{label}</div>
+                <div className="truncate text-base font-bold">
+                    {value != null ? value.toFixed(1) : 'N/A'} {unit}
                 </div>
             </div>
         </div>

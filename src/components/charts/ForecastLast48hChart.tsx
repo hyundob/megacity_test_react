@@ -100,7 +100,7 @@ export default function ForecastLast48hChart({ data, areaGrpId, areaGrpIds, sele
         <div className="w-full">
             <div className="flex flex-col items-center gap-3 mb-4">
                 <div className="flex items-center gap-2">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">영역 선택:</label>
+                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">영역 그룹 선택:</label>
                     {areaGrpIds.length > 0 ? (
                         <select
                             value={selectedAreaGrpId}
@@ -117,7 +117,7 @@ export default function ForecastLast48hChart({ data, areaGrpId, areaGrpIds, sele
                     {areaGrpId && <span className="text-xs text-slate-500">(${areaGrpId})</span>}
                 </div>
             </div>
-            <div className="w-full h-[280px]" role="img" aria-label="최근 48시간 기상예보 차트">
+            <div className="w-full h-[280px]" role="img" aria-label="최근 48시간 수소생산단지 기상 예측 차트">
                 <Line data={chartData} options={options} />
             </div>
         </div>
