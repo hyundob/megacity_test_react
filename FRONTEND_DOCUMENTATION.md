@@ -1,490 +1,316 @@
-npm run dev# 프론트엔드 문서
+# 프론트엔드 문서
 
 ## 개요
 
-메가시티 대시보드는 Next.js 15와 React 19를 기반으로 구축된 전력 수급 관리 대시보드 애플리케이션입니다. 실시간 전력 수요, 재생에너지 발전량, 수소 생산, 기상 예보 등의 데이터를 시각화하여 제공합니다.
+메가시티 대시보드 프론트엔드는 Next.js 15와 React 19 기반의 전력/재생에너지/수소 전환 모니터링 화면입니다.
+
+위젯별 위치와 크기를 조정할 수 있는 12컬럼 대시보드 그리드 구조를 사용합니다. 사용자가 편집한 레이아웃은 브라우저 `localStorage`에 저장되어 같은 PC와 같은 브라우저에서 다시 접속해도 유지됩니다.
 
 ## 기술 스택
 
-- **프레임워크**: Next.js 15.4.4
-- **UI 라이브러리**: React 19.1.0
-- **스타일링**: Tailwind CSS 4
-- **차트 라이브러리**: 
-  - Chart.js 4.5.0
-  - react-chartjs-2 5.2.0
-  - Recharts 3.1.0
-- **아이콘**: Lucide React 0.533.0
-- **언어**: TypeScript 5
+- Framework: Next.js 15.5.15
+- UI: React 19.1.0
+- Language: TypeScript 5
+- Styling: Tailwind CSS 4, 전역 CSS
+- Charts: Chart.js 4.5.0, react-chartjs-2 5.2.0, Recharts 3.1.0
+- Icons: lucide-react 0.533.0
 
 ## 프로젝트 구조
 
-```
+```text
 src/
-├── app/                    # Next.js App Router
-│   ├── page.tsx           # 메인 대시보드 페이지
-│   ├── layout.tsx         # 루트 레이아웃
-│   └── globals.css        # 전역 스타일
-├── components/            # React 컴포넌트
-│   ├── alerts/           # 알림 관련 컴포넌트
-│   ├── cards/            # 정보 카드 컴포넌트
-│   ├── charts/           # 차트 컴포넌트
-│   ├── common/            # 공통 컴포넌트
-│   ├── dashboard/        # 대시보드 레이아웃 컴포넌트
-│   ├── map/              # 지도 관련 컴포넌트
-│   ├── navbar/           # 네비게이션 바
-│   └── system/           # 시스템 상태 컴포넌트
-└── lib/                  # 유틸리티 및 로직
-    ├── api.ts            # API 엔드포인트 정의
-    ├── config.ts         # 설정 상수
-    ├── constants.ts      # 스타일 상수
-    ├── types.ts          # TypeScript 타입 정의
-    ├── useDashboardData.ts  # 대시보드 데이터 훅
-    ├── hooks/            # 커스텀 훅
-    ├── utils/            # 유틸리티 함수
-    └── types/            # 추가 타입 정의
+  app/
+    page.tsx                 # 메인 대시보드 페이지
+    layout.tsx               # 루트 레이아웃, Kakao map script, ThemeProvider
+    globals.css              # 전역 스타일, 대시보드 그리드/위젯 스타일
+    not-found.tsx            # 404 페이지
+
+  components/
+    alerts/                  # 알림 버튼/카드/모달
+    cards/                   # 정보 카드 컴포넌트
+    charts/                  # Chart.js 기반 차트 컴포넌트
+    common/                  # 공통 UI
+    dashboard/
+      DashboardGrid.tsx      # 위젯 그리드, 편집/이동/리사이즈/저장
+      DashboardWidgets.tsx   # 대시보드 위젯 구성
+    map/
+      JejuMapCard.tsx        # 제주 지도 및 지역별 기상 실황
+    navbar/                  # 상단 네비게이션
+    system/                  # 시스템 상태 카드
+
+  lib/
+    api.ts                   # API endpoint 정의
+    config.ts                # 환경 설정
+    constants.ts             # 스타일/상수
+    dashboardLayout.ts       # 기본 위젯 레이아웃과 localStorage 키
+    types.ts                 # 공통 타입
+    useDashboardData.ts      # 대시보드 데이터 로딩 hook
+    hooks/
+      useKPICalculations.ts  # KPI 계산 hook
+    utils.ts                 # 공통 유틸리티
 ```
 
-## 주요 기능
+## 대시보드 레이아웃
 
-### 1. 실시간 대시보드
-- 전력 수요 및 재생에너지 발전량 모니터링
-- 수소 생산 현황 및 예측
-- 기상 예보 데이터 시각화
-- 제주 지역 전력 운영 현황
+### 구조
 
-### 2. 자동 새로고침
-- 5분 간격 자동 데이터 갱신
-- 수동 새로고침 기능
-- localStorage를 통한 설정 저장
+대시보드는 `DashboardGrid`가 관리합니다.
 
-### 3. 차트 시각화
-- 전력 수요 예측 차트
-- 재생에너지 발전 예측 차트
-- 태양광/풍력 발전 예측
-- 수소 생산 예측 차트
-- 48시간 기상 예보 차트
+- 12컬럼 CSS Grid
+- 기본 row height: `52px`
+- grid gap: `12px`
+- 위젯별 `x`, `y`, `w`, `h`, `minW`, `minH` 관리
+- 데스크톱에서는 위젯별 위치/크기 적용
+- 1023px 이하에서는 1열 자동 배치
 
-### 4. 지역별 정보
-- 제주 지역 선택 기능 (제주시, 서귀포, 성산, 고산)
-- 지역별 실시간 기상 정보
-- 지도 기반 시각화
+### 저장 방식
 
-## 컴포넌트 상세
+편집된 위젯 배치는 브라우저 `localStorage`에 저장됩니다.
 
-### 대시보드 레이아웃
+```ts
+export const DASHBOARD_LAYOUT_STORAGE_KEY = 'megacity-dashboard-layout-v4';
+```
 
-#### `page.tsx` (메인 페이지)
-메인 대시보드 페이지로, 3단 컬럼 레이아웃을 사용합니다.
+저장 데이터 예시:
 
-**주요 기능:**
-- `useDashboardData` 훅을 통한 데이터 관리
-- `useKPICalculations` 훅을 통한 KPI 계산
-- 지역 선택 및 필터링
-- 자동/수동 새로고침 제어
+```json
+[
+  { "id": "jeju-map", "x": 0, "y": 0, "w": 4, "h": 10, "minW": 4, "minH": 10 },
+  { "id": "kpi", "x": 4, "y": 0, "w": 3, "h": 4, "minW": 3, "minH": 4 }
+]
+```
 
-**레이아웃 구조:**
-- **LeftColumn**: 전력 수요, 출력제어, 기상 정보, 제주 지도
-- **CenterColumn**: 수급 운영 현황, 재생에너지 발전 예측
-- **RightColumn**: 수소 생산, 시스템 상태, KPI 지표
-- **Forecast48hSection**: 48시간 기상 예보 상세
+동작 방식:
 
-#### `LeftColumn.tsx`
-왼쪽 컬럼 컴포넌트로 다음 정보를 표시합니다:
-- 현재 전력 수요 및 재생에너지 비율
-- 전력 수요 예측 차트
-- 제주 출력제어 예측 차트
-- 기상 예보 정보 카드
-- 제주 지역 지도
+- 최초 진입 시 `localStorage`에 저장된 레이아웃을 읽음
+- 저장값이 없거나 파싱 실패 시 `DEFAULT_DASHBOARD_LAYOUT` 사용
+- 위젯 이동/크기 변경 시 자동 저장
+- `초기화` 버튼 클릭 시 기본 배치로 복원하고 저장값도 갱신
 
-#### `CenterColumn.tsx`
-중앙 컬럼 컴포넌트로 다음 정보를 표시합니다:
-- 수급 운영 현황 (오늘)
-- 전력 수요 vs 재생에너지 비교 차트
-- 태양광/풍력 발전 예측 차트
+### 편집 기능
 
-#### `RightColumn.tsx`
-오른쪽 컬럼 컴포넌트로 다음 정보를 표시합니다:
-- 수소 생산 현황 및 예측
-- 수급 운영 정보
-- KPI 지표 (전력 수요, 재생에너지, 재생에너지 비율, 수소 활용률)
-- 시스템 상태 (API, DB, 예측 서비스)
+`DashboardGrid.tsx`에서 처리합니다.
 
-### 차트 컴포넌트
+- 편집 모드 토글
+- 드래그 이동
+- 크기 조정
+- 화살표 버튼으로 미세 이동
+- `X`, `Y`, `W`, `H` 직접 입력
+- 충돌 시 스왑 우선 처리
+- 스왑이 불가능한 경우 아래로 밀고 위쪽으로 자동 압축
 
-#### `DemandPredictChart.tsx`
-전력 수요 예측 차트를 표시합니다.
-- 예측값 (fcstQgen)
-- 최대값 (fcstQgmx)
-- 최소값 (fcstQgmn)
-- 현재값 (currPwrTot) - 실시간 데이터와 병합
+## 주요 위젯
 
-#### `SolarPredictChart.tsx`
-태양광 발전 예측 차트를 표시합니다.
+현재 `DashboardWidgets.tsx`에서 다음 위젯을 구성합니다.
 
-#### `WindPredictChart.tsx`
-풍력 발전 예측 차트를 표시합니다.
+| ID | 표시명 | 설명 |
+| --- | --- | --- |
+| `jeju-map` | 제주 지역 | 제주 지역 선택 지도 및 선택 지역 기상 실황 |
+| `kpi` | KPI | 현재 수요, 신재생, 재생 비율, 수소 전환 |
+| `demand` | 전력 수요 | 현재 수요 및 수요 예측 차트 |
+| `system-status` | 시스템 상태 | API, DB, 예측 엔진 상태 |
+| `weather` | 수소생산단지 기상 예측 | `REP_DATA_HG_FCST_NWP_DA` 기반 최신 기상 예측 |
+| `sukub-info` | 계통 운영 정보 | 제주 계통 운영 정보 |
+| `operation` | 전력 운영 | 제주 운영 관련 차트 |
+| `demand-regen` | 수요 vs 재생에너지 | 전력 수요와 재생에너지 비교 |
+| `curt` | 출력제어 | 제주 전체 예측 출력제어량 |
+| `hydrogen-scenario` | 잉여 전력 기반 수소 전환 | 잉여 전력 기반 수소 생산량 추산 |
+| `solar` | 태양광 발전 | 태양광 발전 예측 |
+| `wind` | 풍력 발전 | 풍력 발전 예측 |
+| `forecast-48h` | 최근 48시간 수소단지 기상 예측 | 영역별 기온/일사량/풍속 트렌드 |
 
-#### `HydrogenForecastChart.tsx`
-수소 생산 예측 차트를 표시합니다.
-- 예측 생산량 (fcstQgen)
-- 예측 용량 (fcstCapa)
+현재 사용하지 않는 수소 생산/수소 예측 전용 위젯은 대시보드에서 제외되어 있습니다. 대신 수소 관련 표시는 `잉여 전력 기반 수소 전환` 위젯과 KPI의 `수소 전환` 항목으로 정리되어 있습니다.
 
-#### `ForecastLast48hChart.tsx`
-48시간 기상 예보 차트를 표시합니다.
-- 일사량 (fcstSrad)
-- 온도 (fcstTemp)
-- 습도 (fcstHumi)
-- 풍속 (fcstWspd)
-- 기압 (fcstPsfc)
+## 데이터 의미
 
-### 카드 컴포넌트
+### 수소생산단지 기상 예측
 
-#### `ForecastInfoCard.tsx`
-기상 예보 정보 카드를 표시합니다.
-- 온도, 풍속, 풍향
-- 강수 형태 및 하늘 상태
+프론트의 `ForecastPredict`는 DB 설계서 기준 다음 테이블을 의미합니다.
 
-#### `HydrogenProductionCard.tsx`
-수소 생산 현황 카드를 표시합니다.
-- 현재 생산량 및 용량
-- 활용률
+```text
+REP_DATA_HG_FCST_NWP_DA
+수소생산단지 기상 예측 자료(일간)
+```
 
-#### `KmaNowCard.tsx`
-기상청 실시간 데이터 카드를 표시합니다.
+주요 컬럼:
 
-#### `SukubInfoCard.tsx`
-수급 운영 정보 카드를 표시합니다.
+| 프론트 필드 | DB 컬럼 | 의미 |
+| --- | --- | --- |
+| `pwrExcTpCd` | `PWR_EXC_TP_CD` | 전력거래구분 |
+| `areaGrpCd` | `AREA_GRP_CD` | 영역그룹구분 |
+| `areaGrpId` | `AREA_GRP_ID` | 영역그룹아이디 |
+| `crtnTm` | `CRTN_TM` | 생성시간 |
+| `fcstTm` | `FCST_TM` | 예측시간 |
+| `leadTm` | `LEAD_TM` | 선행시간 |
+| `fcstProdCd` | `FCST_PROD_CD` | 예측생산구분 |
+| `fcstSrad` | `FCST_SRAD` | 최종일사량예측 |
+| `fcstTemp` | `FCST_TEMP` | 최종기온예측 |
+| `fcstHumi` | `FCST_HUMI` | 최종습도예측 |
+| `fcstWspd` | `FCST_WSPD` | 최종풍속예측 |
+| `fcstWdir` | `FCST_WDIR` | 최종풍향예측 |
+| `fcstWsl2` | `FCST_WSL2` | L2 최종풍속예측 |
+| `fcstWdl2` | `FCST_WDL2` | L2 최종풍향예측 |
+| `fcstPsfc` | `FCST_PSFC` | 최종기압예측 |
 
-### 알림 컴포넌트
+DB 설계서 참고자료 기준 `L2`는 Level2이며, 본 테이블에서는 풍력터빈 높이인 약 80~100m를 의미합니다.
 
-#### `AlertsButton.tsx`
-알림 버튼 컴포넌트입니다.
+### 제주 지역 기상 실황
 
-#### `AlertsCard.tsx`
-알림 카드 컴포넌트입니다.
+`JejuMapCard`는 수소생산단지 예측 자료와 별개로 기상청 지역 격자 기반 실황 정보를 표시합니다.
 
-#### `AlertsModal.tsx`
-알림 모달 컴포넌트입니다.
+표시 항목:
 
-## 데이터 관리
+- 기온
+- 풍속
+- 풍향
+- 강수형태
+- 하늘상태
 
-### `useDashboardData` 훅
+제주 지역 선택은 다음 지역을 기준으로 합니다.
 
-대시보드의 모든 데이터를 관리하는 커스텀 훅입니다.
+- 제주시
+- 서귀포시
+- 성산
+- 고산
 
-**주요 상태:**
-- `forecastPredict`: 최신 기상 예보
-- `sukubOperation`: 최신 수급 운영 데이터
-- `sukubOperationToday`: 오늘의 수급 운영 데이터 (24시간)
-- `reGenPredictData`: 재생에너지 발전 예측 (태양광)
+지도 마커는 Kakao 기본 마커 대신 투명 Marker와 `CustomOverlay`를 조합해 대시보드 스타일의 커스텀 마커로 표시합니다.
+
+### 수소 전환 KPI
+
+KPI의 `수소 전환`과 `잉여 전력 기반 수소 전환` 위젯은 같은 계산식을 사용합니다.
+
+```text
+잉여 전력(MW) = 현재 신재생 발전량 - 현재 수요
+잉여 전력(kW) = 잉여 전력(MW) * 1000
+수소 전환량(kg/h) = 잉여 전력(kW) * 0.115
+```
+
+수소 저장량 최대치는 현재 화면 계산에서 `1,000kg`으로 제한합니다.
+
+```ts
+const H2_PRODUCTION_KG_PER_KWH = 0.115;
+const H2_STORAGE_MAX_KG = 1000;
+```
+
+잉여 전력이 없거나 현재 수요/신재생 데이터가 없으면 수소 전환 값은 표시하지 않습니다.
+
+## 데이터 로딩
+
+`useDashboardData.ts`에서 대시보드 데이터를 관리합니다.
+
+주요 상태:
+
+- `forecastPredict`: 최신 수소생산단지 기상 예측
+- `forecastPredictLast48h`: 최근 48시간 수소생산단지 기상 예측
+- `sukubOperation`: 최신 계통 운영 정보
+- `sukubOperationToday`: 최근 24시간 계통 운영 정보
+- `reGenPredictData`: 태양광 발전 예측
 - `windPredictData`: 풍력 발전 예측
 - `demandPredict`: 전력 수요 예측
-- `jejuCurtPredictToday`: 제주 출력제어 예측
-- `hgGenPredictToday`: 수소 생산 예측
-- `hgGenInfoToday`: 수소 생산 정보
-- `forecastPredictLast48h`: 최근 48시간 기상 예보
-- `essSeries`: ESS 충전/방전 시계열 데이터
-- `currentSoc`: 현재 SOC (State of Charge)
-- `bestChrgTimes`: 최적 충전 시간대
-- `bestDiscTimes`: 최적 방전 시간대
-- `hgGenUtilPct`: 수소 생산 활용률
-- `hgGenLastItem`: 최신 수소 생산 정보
+- `jejuCurtPredictToday`: 제주 예측 출력제어량
+- `hgGenPredictToday`: 수소 예측 생산량
+- `hgGenInfoToday`: 수소 생산량 정보
+- `essSeries`: ESS 충방전 시계열
+- `currentSoc`: 현재 SOC
+- `bestChrgTimes`: 충전 추천 시간대
+- `bestDiscTimes`: 방전 추천 시간대
+- `selectedJejuRegion`: 제주 지도 선택 지역
+- `ncstTempC`, `ncstWindMs`, `ncstWindDir`, `ncstPty`, `ncstPtyText`, `ncstSky`: 선택 지역 실황 기상
 
-**시스템 상태:**
-- `apiStatus`: API 상태 ('ok' | 'error')
-- `dbStatus`: DB 상태 ('ok' | 'error')
-- `healthApi`, `healthDb`, `healthPredict`: 서비스 헬스 상태
-- `latApi`, `latDb`, `latPredict`: 응답 지연시간 (ms)
-- `hgGenLatency`: 수소 생산 데이터 지연시간 (초)
+자동 새로고침:
 
-**기상 데이터:**
-- `ncstTempC`: 실시간 온도
-- `ncstWindMs`: 실시간 풍속
-- `ncstWindDir`: 실시간 풍향
-- `ncstPty`: 강수 형태 코드
-- `ncstPtyText`: 강수 형태 텍스트
-- `ncstSky`: 하늘 상태 코드
+- 기본값: 켜짐
+- 주기: 5분
+- `dashboard-auto-refresh` 키로 localStorage 저장
 
-**주요 함수:**
-- `load()`: 모든 데이터를 로드하는 함수
-- `loadJejuWeather(region)`: 특정 지역의 날씨 데이터를 로드하는 함수
-- `setAutoRefresh(boolean)`: 자동 새로고침 설정
+## API 엔드포인트
 
-**자동 새로고침:**
-- 기본값: 5분 간격
-- `autoRefresh` 상태로 제어
-- localStorage에 설정 저장
+`src/lib/api.ts`의 `ENDPOINTS`에서 관리합니다.
 
-### `useKPICalculations` 훅
+| 키 | 경로 | 설명 |
+| --- | --- | --- |
+| `forecastPredictLatest` | `/forecast-predict/latest` | 최신 수소생산단지 기상 예측 |
+| `forecastPredictLast48h` | `/forecast-predict/last-48h` | 최근 48시간 수소생산단지 기상 예측 |
+| `sukubOperationLatest` | `/sukub-operation/latest` | 최신 계통 운영 정보 |
+| `sukubOperationLast24h` | `/sukub-operation/last-24h` | 최근 24시간 계통 운영 정보 |
+| `reGenPredictLatestCrtn` | `/re-gen-predict/latest-crtn` | 태양광 발전 예측 |
+| `windPredictLatestCrtn` | `/re-gen-predict/wind/latest-crtn` | 풍력 발전 예측 |
+| `demandPredictLatestCrtn` | `/demand-predict/latest-crtn` | 전력 수요 예측 |
+| `jejuCurtPredictLatestCrtn` | `/jeju-curt-predict/latest-crtn` | 제주 출력제어 예측 |
+| `hgGenPredictToday` | `/hg-gen-predict/today` | 수소 예측 생산량 |
+| `hgGenInfoToday` | `/hg-gen-info/today` | 수소 생산량 정보 |
+| `jejuWeatherRegion` | `/jeju-weather/region?nx=&ny=` | 제주 선택 지역 실황 기상 |
 
-KPI 지표를 계산하는 커스텀 훅입니다.
-
-**계산 지표:**
-- `currentDemand`: 현재 전력 수요
-- `currentRenewable`: 현재 재생에너지 발전량
-- `renewableRatio`: 재생에너지 비율 (%)
-- `hydrogenUtil`: 수소 활용률 (%)
-
-## API 통신
-
-### 엔드포인트 정의 (`api.ts`)
-
-모든 API 엔드포인트는 `ENDPOINTS` 객체에 정의되어 있습니다.
-
-**기상 예보:**
-- `forecastPredictLatest`: 최신 기상 예보
-- `forecastPredictLast48h`: 최근 48시간 기상 예보
-
-**수급 운영:**
-- `sukubOperationLatest`: 최신 수급 운영 데이터
-- `sukubOperationLast24h`: 최근 24시간 수급 운영 데이터
-
-**재생에너지 발전 예측:**
-- `reGenPredictLatestCrtn`: 태양광 발전 예측 (최신 CRTN_TM 기준)
-- `windPredictLatestCrtn`: 풍력 발전 예측 (최신 CRTN_TM 기준)
-
-**전력 수요 예측:**
-- `demandPredictLatestCrtn`: 전력 수요 예측 (최신 CRTN_TM 기준)
-
-**제주 출력제어 예측:**
-- `jejuCurtPredictLatestCrtn`: 제주 출력제어 예측 (최신 CRTN_TM 기준)
-
-**수소 생산:**
-- `hgGenPredictToday`: 수소 생산 예측 (오늘)
-- `hgGenInfoToday`: 수소 생산 정보 (오늘)
-
-**제주 날씨:**
-- `jejuWeatherCurrent`: 제주 현재 날씨
-- `jejuWeatherRegion(nx, ny)`: 제주 지역별 날씨
-
-### API 설정 (`config.ts`)
-
-**환경 변수:**
-- `NEXT_PUBLIC_API_BASE_URL`: API 기본 URL (기본값: `http://210.222.202.14:18080/api`)
-
-**차트 설정:**
-- `DEFAULT_HEIGHT`: 기본 차트 높이 (260px)
-- `MAX_XAXIS_TICKS`: X축 최대 틱 수 (8)
-- `MARGIN`: 차트 여백 설정
-
-**지도 설정:**
-- `MAX_RETRIES`: 최대 재시도 횟수 (50)
-- `RETRY_INTERVAL_MS`: 재시도 간격 (100ms)
-- `DEFAULT_LEVEL`: 기본 지도 레벨 (11)
-
-### `fetchWithTiming` 함수
-
-API 요청의 응답 시간을 측정하는 함수입니다.
-
-```typescript
-const { res, ms } = await fetchWithTiming(url);
-// res: Response 객체
-// ms: 응답 시간 (밀리초)
-```
-
-## 타입 정의
-
-### 주요 타입 (`types.ts`)
-
-#### `ForecastPredict`
-기상 예보 데이터 타입:
-```typescript
-{
-    crtnTm: string;      // 생성 시간
-    fcstTm: string;      // 예보 시간
-    areaGrpId: string;   // 지역 그룹 ID
-    fcstSrad: number;    // 일사량 예측
-    fcstTemp: number;    // 온도 예측
-    fcstHumi: number;    // 습도 예측
-    fcstWspd: number;    // 풍속 예측
-    fcstPsfc: number;    // 기압 예측
-}
-```
-
-#### `SukubOperation`
-수급 운영 데이터 타입:
-```typescript
-{
-    tm: string;              // 시간
-    suppAbility: number;     // 공급 능력
-    currPwrTot: number;      // 현재 전력 총량
-    renewPwrTot: number;     // 재생에너지 전력 총량
-    renewPwrSolar: number;   // 태양광 전력
-    renewPwrWind: number;    // 풍력 전력
-}
-```
-
-#### `DemandPredict`
-전력 수요 예측 타입:
-```typescript
-{
-    crtnTm: string;          // 생성 시간
-    fcstTm: string;          // 예측 시간
-    fcstQgen: number;        // 예측 발전량
-    fcstQgmx: number;        // 예측 최대 발전량
-    fcstQgmn: number;        // 예측 최소 발전량
-    currPwrTot?: number | null; // 현재 전력 총량 (병합 데이터)
-}
-```
-
-#### `ReGenPredict`
-재생에너지 발전 예측 타입:
-```typescript
-{
-    fcstTm: string;      // 예측 시간
-    fcstQgen: number;    // 예측 발전량
-    fcstQgmx: number;    // 예측 최대 발전량
-    fcstQgmn: number;    // 예측 최소 발전량
-    essChrg: number;     // ESS 충전량
-    essDisc: number;     // ESS 방전량
-    essCapa: number;     // ESS 용량
-}
-```
-
-#### `JejuRegion`
-제주 지역 정보 타입:
-```typescript
-{
-    name: string;                    // 지역명
-    direction: 'north' | 'south' | 'east' | 'west';
-    nx: number;                      // 기상청 격자 X 좌표
-    ny: number;                      // 기상청 격자 Y 좌표
-    lat: number;                     // 위도
-    lng: number;                     // 경도
-}
-```
-
-**제주 지역 목록:**
-- 제주시 (nx: 53, ny: 38)
-- 서귀포 (nx: 52, ny: 33)
-- 성산 (nx: 60, ny: 37)
-- 고산 (nx: 46, ny: 35)
-
-#### `ServiceHealth`
-서비스 헬스 상태 타입:
-```typescript
-'ok' | 'slow' | 'down'
-```
-
-#### `AlertItem`
-알림 아이템 타입:
-```typescript
-{
-    id: string;
-    icon: 'warn' | 'bell';
-    title: string;
-    desc: string;
-    ago: string;
-}
-```
-
-## 스타일링
-
-### 그라데이션 상수 (`constants.ts`)
-
-각 카드 타입별 그라데이션 배경색이 정의되어 있습니다:
-
-- `demand`: 전력 수요 카드
-- `curt`: 출력제어 카드
-- `weather`: 기상 정보 카드
-- `operation`: 수급 운영 카드
-- `demandReGen`: 전력 수요 vs 재생에너지 카드
-- `solar`: 태양광 카드
-- `wind`: 풍력 카드
-- `hydrogen`: 수소 생산 카드
-- `hydrogenForecast`: 수소 생산 예측 카드
-- `jejuOperation`: 제주 운영 카드
-- `systemStatus`: 시스템 상태 카드
-- `forecast48h`: 48시간 예보 카드
-- `mainBackground`: 메인 배경
-
-### 그림자 색상
-
-각 카드 타입별 그림자 색상이 정의되어 있습니다 (`SHADOW_COLORS`).
-
-## 유틸리티 함수
-
-### `calculations.ts`
-
-계산 관련 유틸리티 함수들이 정의되어 있습니다.
-
-**주요 함수:**
-- `calculateRenewableRatio(demand, renewable)`: 재생에너지 비율 계산
-
-### `utils.ts`
-
-기타 유틸리티 함수들이 정의되어 있습니다.
-
-**주요 함수:**
-- `buildEssSeriesFromData(data)`: ESS 시계열 데이터 생성
-- `topHours(data, field, count)`: 상위 시간대 추출
-- `msToHealth(isOk, ms)`: 응답 시간을 헬스 상태로 변환
-
-## 실행 방법
-
-### 개발 서버 실행
-
-```bash
-npm run dev
-# 또는
-yarn dev
-# 또는
-pnpm dev
-# 또는
-bun dev
-```
-
-개발 서버는 `http://localhost:3000`에서 실행됩니다.
-
-### 프로덕션 빌드
-
-```bash
-npm run build
-npm start
-```
-
-### 린트 실행
-
-```bash
-npm run lint
-```
-
-## 환경 변수
-
-프로젝트 루트에 `.env.local` 파일을 생성하여 다음 환경 변수를 설정할 수 있습니다:
+API 기본 URL은 환경 변수로 설정합니다.
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://210.222.202.14:18080/api
 ```
 
-## 주요 특징
+## 백엔드 연계 참고
 
-1. **실시간 데이터 업데이트**: 5분 간격 자동 새로고침
-2. **반응형 디자인**: Tailwind CSS를 사용한 반응형 레이아웃
-3. **타입 안정성**: TypeScript를 통한 타입 안정성 보장
-4. **성능 최적화**: React 19의 최신 기능 활용
-5. **차트 시각화**: Chart.js와 Recharts를 활용한 다양한 차트
-6. **지역별 정보**: 제주 지역별 상세 정보 제공
+백엔드 프로젝트:
 
-## 데이터 흐름
+```text
+megacity_back
+```
 
-1. **초기 로드**: 페이지 로드 시 `useDashboardData` 훅이 모든 API를 병렬로 호출
-2. **데이터 처리**: API 응답을 파싱하고 필터링/정렬하여 상태에 저장
-3. **KPI 계산**: `useKPICalculations` 훅이 실시간으로 KPI 계산
-4. **컴포넌트 렌더링**: 각 컴포넌트가 필요한 데이터를 props로 받아 렌더링
-5. **자동 갱신**: 5분마다 자동으로 데이터 재로드 (autoRefresh가 true일 때)
+현재 프론트의 `forecast-predict` 계열 API는 백엔드의 `ForecastPredict` 컨트롤러와 `ForecastPredictService`, 엔티티 `RepDataHgFcstNwpDa`와 연계됩니다.
 
-## 알려진 제한사항
+DB 설계서 기준으로는 백엔드 DTO가 다음 필드를 내려주면 프론트 타입과 가장 잘 맞습니다.
 
-1. API 서버가 다운되면 전체 대시보드가 에러 상태로 표시됩니다.
-2. 48시간 예보 데이터는 실패해도 대시보드 렌더링은 계속됩니다.
-3. 제주 날씨 데이터는 선택된 지역에 따라 별도로 로드됩니다.
+- `pwrExcTpCd`
+- `areaGrpCd`
+- `areaGrpId`
+- `crtnTm`
+- `fcstTm`
+- `leadTm`
+- `fcstProdCd`
+- `fcstSrad`
+- `fcstTemp`
+- `fcstHumi`
+- `fcstWspd`
+- `fcstWdir`
+- `fcstWsl2`
+- `fcstWdl2`
+- `fcstPsfc`
 
-## 향후 개선 사항
+현재 프론트에서는 일부 확장 필드를 optional로 열어두었으므로 백엔드가 아직 해당 필드를 내려주지 않아도 화면은 깨지지 않습니다.
 
-- 에러 바운더리 추가
-- 로딩 스켈레톤 UI
-- 데이터 캐싱 최적화
-- 오프라인 모드 지원
-- 다크 모드 지원
+## 실행 방법
 
+개발 서버:
+
+```bash
+npm run dev
+```
+
+프로덕션 빌드:
+
+```bash
+npm run build
+```
+
+프로덕션 실행:
+
+```bash
+npm start
+```
+
+## 검증 기준
+
+프론트 변경 후 기본적으로 확인할 항목:
+
+- `npm run build` 성공 여부
+- 대시보드 첫 화면에서 주요 위젯이 잘리지 않는지 확인
+- 편집 모드에서 위젯 이동/크기 조정/초기화가 정상 동작하는지 확인
+- localStorage에 저장된 레이아웃이 새로고침 후 복원되는지 확인
+- Kakao 지도 스크립트 로드 및 커스텀 마커 클릭 동작 확인
+- API 응답이 없을 때 빈 상태/장애 상태가 깨지지 않는지 확인
+
+## 알려진 주의사항
+
+- 레이아웃은 브라우저 localStorage 기반이므로 브라우저/PC별로 따로 저장됩니다.
+- 브라우저 사이트 데이터 삭제, 시크릿 모드, 다른 브라우저 사용 시 레이아웃 저장값은 유지되지 않습니다.
+- 모바일/태블릿 폭에서는 위젯 위치/크기 커스텀 값보다 1열 반응형 배치가 우선됩니다.
+- `forecast-predict/latest`는 백엔드 조회 기준에 따라 특정 `AREA_GRP_ID`의 최신 row가 내려올 수 있으므로, 영역별 최신값이 필요하면 백엔드에 `areaGrpId` 필터 엔드포인트를 추가하는 것이 좋습니다.
