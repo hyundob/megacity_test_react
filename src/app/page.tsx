@@ -1,58 +1,84 @@
 'use client';
 
-import React, { useMemo, useEffect, useCallback } from 'react';
+import React, { useMemo, useEffect, useCallback, useRef, useState } from 'react';
 import { useDashboardData } from '@/lib/useDashboardData';
 import { useKPICalculations } from '@/lib/hooks/useKPICalculations';
 import Navbar from '../components/navbar/Navbar';
 import DashboardGrid from '../components/dashboard/DashboardGrid';
 import { buildDashboardWidgets } from '../components/dashboard/DashboardWidgets';
+import {
+    PAGE_DEFAULT_WIDGETS,
+    PAGE_DEFAULT_LAYOUTS,
+    PAGE_LABELS,
+    PAGE_STORAGE_KEYS,
+    VISIBLE_WIDGETS_STORAGE_KEY,
+} from '@/lib/dashboardLayout';
+import type { DashboardWidgetId, PageId } from '@/lib/dashboardLayout';
 import type { JejuRegion } from '@/lib/types';
 import './globals.css';
 
+const PAGES: PageId[] = ['page1', 'page2', 'page3'];
+
 export default function Page() {
     const d = useDashboardData();
-    const {
-        autoRefresh,
-        setAutoRefresh,
-        load,
-        setSelectedJejuRegion,
-        loadJejuWeather,
-    } = d;
-    const [selectedAreaGrpId, setSelectedAreaGrpId] = React.useState<string>('');
+    const { autoRefresh, setAutoRefresh, load, setSelectedJejuRegion, loadJejuWeather } = d;
+    const [selectedAreaGrpId, setSelectedAreaGrpId] = useState<string>('');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [visibleWidgets, setVisibleWidgets] = useState<Record<PageId, DashboardWidgetId[]>>(PAGE_DEFAULT_WIDGETS);
+    const [visibleLoaded, setVisibleLoaded] = useState(false);
 
-    // KPI 계산
-    const kpi = useKPICalculations({
-        sukubOperation: d.sukubOperation,
-        hgGenUtilPct: d.hgGenUtilPct
-    });
+    const snapRef = useRef<HTMLDivElement>(null);
 
-    // 이벤트 핸들러
-    const handleToggleAutoRefresh = useCallback(() => {
-        setAutoRefresh(!autoRefresh);
-    }, [autoRefresh, setAutoRefresh]);
+    // Load persisted widget visibility
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem(VISIBLE_WIDGETS_STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored) as Record<string, DashboardWidgetId[]>;
+                if (PAGES.every(p => Array.isArray(parsed[p]))) {
+                    setVisibleWidgets(parsed as Record<PageId, DashboardWidgetId[]>);
+                }
+            }
+        } catch { /* ignore */ }
+        setVisibleLoaded(true);
+    }, []);
 
-    const handleManualRefresh = useCallback(() => {
-        load();
-    }, [load]);
+    useEffect(() => {
+        if (!visibleLoaded) return;
+        localStorage.setItem(VISIBLE_WIDGETS_STORAGE_KEY, JSON.stringify(visibleWidgets));
+    }, [visibleWidgets, visibleLoaded]);
 
+    // Scroll-snap page tracker
+    const handleScroll = useCallback(() => {
+        const el = snapRef.current;
+        if (!el || el.clientHeight === 0) return;
+        setCurrentPage(Math.round(el.scrollTop / el.clientHeight));
+    }, []);
+
+    const scrollToPage = useCallback((index: number) => {
+        const el = snapRef.current;
+        if (!el) return;
+        el.scrollTo({ top: index * el.clientHeight, behavior: 'smooth' });
+    }, []);
+
+    // KPI
+    const kpi = useKPICalculations({ sukubOperation: d.sukubOperation, hgGenUtilPct: d.hgGenUtilPct });
+
+    const handleToggleAutoRefresh = useCallback(() => setAutoRefresh(!autoRefresh), [autoRefresh, setAutoRefresh]);
+    const handleManualRefresh = useCallback(() => load(), [load]);
     const handleAreaGrpIdChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedAreaGrpId(e.target.value);
     }, []);
 
-    // areaGrpId 목록 추출 (중복 제거)
     const areaGrpIds = useMemo(() => {
         const ids = new Set(d.forecastPredictLast48h.map(item => item.areaGrpId).filter(Boolean));
         return Array.from(ids).sort();
     }, [d.forecastPredictLast48h]);
 
-    // 첫 번째 영역을 기본값으로 설정
     useEffect(() => {
-        if (areaGrpIds.length > 0 && !selectedAreaGrpId) {
-            setSelectedAreaGrpId(areaGrpIds[0]);
-        }
+        if (areaGrpIds.length > 0 && !selectedAreaGrpId) setSelectedAreaGrpId(areaGrpIds[0]);
     }, [areaGrpIds, selectedAreaGrpId]);
 
-    // 선택된 areaGrpId로 필터링
     const filteredData = useMemo(() => {
         if (!selectedAreaGrpId) return [];
         return d.forecastPredictLast48h.filter(item => item.areaGrpId === selectedAreaGrpId);
@@ -64,7 +90,7 @@ export default function Page() {
         await loadJejuWeather(region);
     }, [setSelectedJejuRegion, loadJejuWeather]);
 
-    const widgets = useMemo(() => buildDashboardWidgets({
+    const allWidgets = useMemo(() => buildDashboardWidgets({
         data: d,
         kpi,
         selectedAreaGrpId,
@@ -72,30 +98,84 @@ export default function Page() {
         filteredForecastData: filteredData,
         onAreaGrpIdChange: handleAreaGrpIdChange,
         onRegionSelect: handleRegionSelect,
-    }), [
-        d,
-        kpi,
-        selectedAreaGrpId,
-        areaGrpIds,
-        filteredData,
-        handleAreaGrpIdChange,
-        handleRegionSelect,
-    ]);
+    }), [d, kpi, selectedAreaGrpId, areaGrpIds, filteredData, handleAreaGrpIdChange, handleRegionSelect]);
+
+    const widgetMap = useMemo(() => new Map(allWidgets.map(w => [w.id, w])), [allWidgets]);
+
+    const getPageWidgets = useCallback((pageId: PageId) =>
+        visibleWidgets[pageId]
+            .map(id => widgetMap.get(id))
+            .filter((w): w is NonNullable<typeof w> => w != null),
+        [visibleWidgets, widgetMap],
+    );
+
+    const getAddableWidgets = useCallback((pageId: PageId) =>
+        PAGE_DEFAULT_WIDGETS[pageId]
+            .filter(id => !visibleWidgets[pageId].includes(id))
+            .map(id => widgetMap.get(id))
+            .filter((w): w is NonNullable<typeof w> => w != null),
+        [visibleWidgets, widgetMap],
+    );
+
+    const handleAddWidget = useCallback((pageId: PageId, id: DashboardWidgetId) => {
+        setVisibleWidgets(prev => ({ ...prev, [pageId]: [...prev[pageId], id] }));
+    }, []);
+
+    const handleRemoveWidget = useCallback((pageId: PageId, id: DashboardWidgetId) => {
+        setVisibleWidgets(prev => ({ ...prev, [pageId]: prev[pageId].filter(wid => wid !== id) }));
+    }, []);
 
     return (
-        <div className="min-h-screen">
-            <div className="max-w-[1920px] mx-auto p-3 sm:p-4">
-                <Navbar
-                    lastUpdated={d.lastUpdated}
-                    apiStatus={d.apiStatus}
-                    dbStatus={d.dbStatus}
-                    autoRefresh={d.autoRefresh}
-                    onToggleAutoRefresh={handleToggleAutoRefresh}
-                    onManualRefresh={handleManualRefresh}
-                    alerts={d.alerts}
-                />
+        <div className="snap-outer">
+            {/* Fixed navbar */}
+            <div className="snap-navbar">
+                <div className="max-w-[1920px] mx-auto px-3 sm:px-4">
+                    <Navbar
+                        lastUpdated={d.lastUpdated}
+                        apiStatus={d.apiStatus}
+                        dbStatus={d.dbStatus}
+                        autoRefresh={d.autoRefresh}
+                        onToggleAutoRefresh={handleToggleAutoRefresh}
+                        onManualRefresh={handleManualRefresh}
+                        alerts={d.alerts}
+                    />
+                </div>
+            </div>
 
-                <DashboardGrid widgets={widgets} />
+            {/* Right-side page indicators */}
+            <nav className="page-indicators" aria-label="페이지 탐색">
+                {PAGES.map((pageId, i) => (
+                    <button
+                        key={pageId}
+                        type="button"
+                        className={`page-dot ${currentPage === i ? 'page-dot-active' : ''}`}
+                        onClick={() => scrollToPage(i)}
+                        title={PAGE_LABELS[pageId]}
+                        aria-label={PAGE_LABELS[pageId]}
+                        aria-current={currentPage === i ? 'page' : undefined}
+                    >
+                        <span className="page-dot-label">{PAGE_LABELS[pageId]}</span>
+                    </button>
+                ))}
+            </nav>
+
+            {/* Scroll-snap container */}
+            <div ref={snapRef} className="snap-scroll" onScroll={handleScroll}>
+                {PAGES.map((pageId) => (
+                    <div key={pageId} className="snap-page">
+                        <div className="snap-page-inner max-w-[1920px] mx-auto px-3 sm:px-4">
+                            <DashboardGrid
+                                widgets={getPageWidgets(pageId)}
+                                storageKey={PAGE_STORAGE_KEYS[pageId]}
+                                defaultLayout={PAGE_DEFAULT_LAYOUTS[pageId]}
+                                addableWidgets={getAddableWidgets(pageId)}
+                                onAddWidget={(id) => handleAddWidget(pageId, id)}
+                                onRemoveWidget={(id) => handleRemoveWidget(pageId, id)}
+                                pageLabel={PAGE_LABELS[pageId]}
+                            />
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

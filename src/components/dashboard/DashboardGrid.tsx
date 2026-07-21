@@ -13,13 +13,12 @@ import {
     Plus,
     RotateCcw,
     Settings2,
+    X,
 } from 'lucide-react';
 import {
     DASHBOARD_GRID_COLUMNS,
     DASHBOARD_GRID_GAP,
     DASHBOARD_GRID_ROW_HEIGHT,
-    DASHBOARD_LAYOUT_STORAGE_KEY,
-    DEFAULT_DASHBOARD_LAYOUT,
 } from '@/lib/dashboardLayout';
 import type { DashboardLayoutItem, DashboardWidgetId } from '@/lib/dashboardLayout';
 
@@ -39,9 +38,17 @@ type DragAction = {
 
 interface DashboardGridProps {
     widgets: DashboardWidgetDefinition[];
+    storageKey: string;
+    defaultLayout: DashboardLayoutItem[];
+    addableWidgets?: DashboardWidgetDefinition[];
+    onAddWidget?: (id: DashboardWidgetId) => void;
+    onRemoveWidget?: (id: DashboardWidgetId) => void;
+    pageLabel?: string;
 }
 
-const defaultLayoutById = new Map(DEFAULT_DASHBOARD_LAYOUT.map(item => [item.id, item]));
+// ─────────────────────────────────────────────
+// Pure helpers — parameterised by defaultLayout
+// ─────────────────────────────────────────────
 
 function clamp(value: number, min: number, max: number) {
     if (!Number.isFinite(value)) return min;
@@ -55,29 +62,6 @@ function numberOr(value: unknown, fallback: number) {
 
 function sortLayout(layout: DashboardLayoutItem[]) {
     return [...layout].sort((a, b) => (a.y - b.y) || (a.x - b.x));
-}
-
-function clampLayoutItem(item: DashboardLayoutItem): DashboardLayoutItem {
-    const defaults = defaultLayoutById.get(item.id) ?? item;
-    const minW = defaults.minW;
-    const minH = defaults.minH;
-    const maxW = defaults.maxW ?? DASHBOARD_GRID_COLUMNS;
-    const maxH = defaults.maxH ?? 100;
-    const w = clamp(Math.round(item.w), minW, Math.min(maxW, DASHBOARD_GRID_COLUMNS));
-    const h = clamp(Math.round(item.h), minH, maxH);
-
-    return {
-        ...defaults,
-        ...item,
-        minW,
-        minH,
-        maxW: defaults.maxW,
-        maxH: defaults.maxH,
-        w,
-        h,
-        x: clamp(Math.round(item.x), 0, DASHBOARD_GRID_COLUMNS - w),
-        y: Math.max(0, Math.round(item.y)),
-    };
 }
 
 function collides(a: DashboardLayoutItem, b: DashboardLayoutItem) {
@@ -100,137 +84,187 @@ function findPrimaryCollision(item: DashboardLayoutItem, others: DashboardLayout
         .sort((a, b) => overlapArea(item, b) - overlapArea(item, a))[0] ?? null;
 }
 
-function compactLayout(layout: DashboardLayoutItem[], pinnedId?: DashboardWidgetId) {
-    const placed: DashboardLayoutItem[] = [];
-    const pinned = pinnedId ? layout.find(item => item.id === pinnedId) : null;
+// Creates a set of layout helpers scoped to a specific defaultLayout
+function createHelpers(defaultLayout: DashboardLayoutItem[]) {
+    const byId = new Map(defaultLayout.map(item => [item.id, item]));
 
-    if (pinned) {
-        placed.push(clampLayoutItem(pinned));
+    function clampLayoutItem(item: DashboardLayoutItem): DashboardLayoutItem {
+        const defaults = byId.get(item.id) ?? item;
+        const minW = defaults.minW;
+        const minH = defaults.minH;
+        const maxW = defaults.maxW ?? DASHBOARD_GRID_COLUMNS;
+        const maxH = defaults.maxH ?? 100;
+        const w = clamp(Math.round(item.w), minW, Math.min(maxW, DASHBOARD_GRID_COLUMNS));
+        const h = clamp(Math.round(item.h), minH, maxH);
+        return {
+            ...defaults,
+            ...item,
+            minW,
+            minH,
+            maxW: defaults.maxW,
+            maxH: defaults.maxH,
+            w,
+            h,
+            x: clamp(Math.round(item.x), 0, DASHBOARD_GRID_COLUMNS - w),
+            y: Math.max(0, Math.round(item.y)),
+        };
     }
 
-    for (const item of sortLayout(layout.filter(layoutItem => layoutItem.id !== pinnedId))) {
-        let candidate = clampLayoutItem(item);
+    function compactLayout(layout: DashboardLayoutItem[], pinnedId?: DashboardWidgetId): DashboardLayoutItem[] {
+        const placed: DashboardLayoutItem[] = [];
+        const pinned = pinnedId ? layout.find(item => item.id === pinnedId) : null;
+
+        if (pinned) placed.push(clampLayoutItem(pinned));
+
+        for (const item of sortLayout(layout.filter(i => i.id !== pinnedId))) {
+            let candidate = clampLayoutItem(item);
+            let guard = 0;
+            while (hasCollision(candidate, placed) && guard < layout.length * 4) {
+                candidate = clampLayoutItem({ ...candidate, y: candidate.y + 1 });
+                guard += 1;
+            }
+            while (candidate.y > 0) {
+                const moved = { ...candidate, y: candidate.y - 1 };
+                if (hasCollision(moved, placed)) break;
+                candidate = moved;
+            }
+            placed.push(candidate);
+        }
+
+        return sortLayout(placed);
+    }
+
+    function resolveCollisions(layout: DashboardLayoutItem[], priorityId?: DashboardWidgetId): DashboardLayoutItem[] {
+        let next = layout.map(clampLayoutItem);
+        let changed = true;
         let guard = 0;
 
-        while (hasCollision(candidate, placed) && guard < layout.length * 4) {
-            candidate = clampLayoutItem({ ...candidate, y: candidate.y + 1 });
+        while (changed && guard < next.length * next.length * 2) {
+            changed = false;
             guard += 1;
+
+            const priority = priorityId ? next.find(item => item.id === priorityId) : null;
+            const ordered = priority
+                ? [priority, ...sortLayout(next.filter(item => item.id !== priorityId))]
+                : sortLayout(next);
+
+            for (let i = 0; i < ordered.length; i += 1) {
+                for (let j = i + 1; j < ordered.length; j += 1) {
+                    if (collides(ordered[i], ordered[j])) {
+                        ordered[j].y = ordered[i].y + ordered[i].h;
+                        changed = true;
+                    }
+                }
+            }
+
+            next = next.map(clampLayoutItem);
         }
 
-        while (candidate.y > 0) {
-            const moved = { ...candidate, y: candidate.y - 1 };
-            if (hasCollision(moved, placed)) break;
-            candidate = moved;
-        }
-
-        placed.push(candidate);
+        return compactLayout(sortLayout(next), priorityId);
     }
 
-    return sortLayout(placed);
-}
+    function moveWithSwap(
+        layout: DashboardLayoutItem[],
+        movingId: DashboardWidgetId,
+        nextMovingItem: DashboardLayoutItem,
+        previousMovingItem: DashboardLayoutItem,
+    ): DashboardLayoutItem[] {
+        const movingItem = clampLayoutItem(nextMovingItem);
+        const others = layout.filter(item => item.id !== movingId).map(clampLayoutItem);
+        const primaryCollision = findPrimaryCollision(movingItem, others);
 
-function resolveCollisions(layout: DashboardLayoutItem[], priorityId?: DashboardWidgetId) {
-    let next = layout.map(clampLayoutItem);
-    let changed = true;
-    let guard = 0;
+        if (primaryCollision) {
+            const swappedItem = clampLayoutItem({
+                ...primaryCollision,
+                x: clamp(previousMovingItem.x, 0, DASHBOARD_GRID_COLUMNS - primaryCollision.w),
+                y: previousMovingItem.y,
+            });
+            const remaining = others.filter(item => item.id !== primaryCollision.id);
 
-    while (changed && guard < next.length * next.length * 2) {
-        changed = false;
-        guard += 1;
-
-        const priority = priorityId ? next.find(item => item.id === priorityId) : null;
-        const ordered = priority
-            ? [priority, ...sortLayout(next.filter(item => item.id !== priorityId))]
-            : sortLayout(next);
-
-        for (let i = 0; i < ordered.length; i += 1) {
-            for (let j = i + 1; j < ordered.length; j += 1) {
-                if (collides(ordered[i], ordered[j])) {
-                    ordered[j].y = ordered[i].y + ordered[i].h;
-                    changed = true;
-                }
+            if (
+                !collides(movingItem, swappedItem) &&
+                !hasCollision(swappedItem, remaining) &&
+                !hasCollision(movingItem, remaining)
+            ) {
+                return sortLayout([movingItem, swappedItem, ...remaining]);
             }
         }
 
-        next = next.map(clampLayoutItem);
+        return resolveCollisions([movingItem, ...others], movingId);
     }
 
-    return compactLayout(sortLayout(next), priorityId);
-}
+    function parseStoredLayout(value: string | null): DashboardLayoutItem[] | null {
+        if (!value) return null;
 
-function moveWithSwap(
-    layout: DashboardLayoutItem[],
-    movingId: DashboardWidgetId,
-    nextMovingItem: DashboardLayoutItem,
-    previousMovingItem: DashboardLayoutItem,
-) {
-    const movingItem = clampLayoutItem(nextMovingItem);
-    const others = layout.filter(item => item.id !== movingId).map(clampLayoutItem);
-    const primaryCollision = findPrimaryCollision(movingItem, others);
+        try {
+            const parsed = JSON.parse(value);
+            if (!Array.isArray(parsed)) return null;
 
-    if (primaryCollision) {
-        const swappedItem = clampLayoutItem({
-            ...primaryCollision,
-            x: clamp(previousMovingItem.x, 0, DASHBOARD_GRID_COLUMNS - primaryCollision.w),
-            y: previousMovingItem.y,
-        });
-        const remaining = others.filter(item => item.id !== primaryCollision.id);
+            return defaultLayout.map(defaultItem => {
+                const stored = parsed.find((item: Partial<DashboardLayoutItem>) => item?.id === defaultItem.id);
+                if (!stored) return defaultItem;
 
-        if (
-            !collides(movingItem, swappedItem) &&
-            !hasCollision(swappedItem, remaining) &&
-            !hasCollision(movingItem, remaining)
-        ) {
-            return sortLayout([movingItem, swappedItem, ...remaining]);
+                return clampLayoutItem({
+                    ...defaultItem,
+                    x: numberOr(stored.x, defaultItem.x),
+                    y: numberOr(stored.y, defaultItem.y),
+                    w: numberOr(stored.w, defaultItem.w),
+                    h: numberOr(stored.h, defaultItem.h),
+                });
+            });
+        } catch {
+            return null;
         }
     }
 
-    return resolveCollisions([movingItem, ...others], movingId);
+    return { clampLayoutItem, compactLayout, resolveCollisions, moveWithSwap, parseStoredLayout };
 }
 
-function parseStoredLayout(value: string | null): DashboardLayoutItem[] | null {
-    if (!value) return null;
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
 
-    try {
-        const parsed = JSON.parse(value);
-        if (!Array.isArray(parsed)) return null;
-
-        return DEFAULT_DASHBOARD_LAYOUT.map(defaultItem => {
-            const stored = parsed.find((item: Partial<DashboardLayoutItem>) => item?.id === defaultItem.id);
-            if (!stored) return defaultItem;
-
-            return clampLayoutItem({
-                ...defaultItem,
-                x: numberOr(stored.x, defaultItem.x),
-                y: numberOr(stored.y, defaultItem.y),
-                w: numberOr(stored.w, defaultItem.w),
-                h: numberOr(stored.h, defaultItem.h),
-            });
-        });
-    } catch {
-        return null;
-    }
-}
-
-export default function DashboardGrid({ widgets }: DashboardGridProps) {
+export default function DashboardGrid({
+    widgets,
+    storageKey,
+    defaultLayout,
+    addableWidgets,
+    onAddWidget,
+    onRemoveWidget,
+    pageLabel,
+}: DashboardGridProps) {
     const widgetMap = useMemo(() => new Map(widgets.map(widget => [widget.id, widget])), [widgets]);
-    const [layout, setLayout] = useState<DashboardLayoutItem[]>(DEFAULT_DASHBOARD_LAYOUT);
+
+    const helpers = useMemo(() => createHelpers(defaultLayout), [defaultLayout]);
+
+    const [layout, setLayout] = useState<DashboardLayoutItem[]>(defaultLayout);
     const [editMode, setEditMode] = useState(false);
     const [layoutReady, setLayoutReady] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
+
     const gridRef = useRef<HTMLDivElement>(null);
     const actionRef = useRef<DragAction | null>(null);
 
+    // Load from localStorage
     useEffect(() => {
-        const stored = parseStoredLayout(localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY));
-        setLayout(resolveCollisions(stored ?? DEFAULT_DASHBOARD_LAYOUT));
+        const stored = helpers.parseStoredLayout(localStorage.getItem(storageKey));
+        setLayout(helpers.resolveCollisions(stored ?? defaultLayout));
         setLayoutReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Persist to localStorage
     useEffect(() => {
         if (!layoutReady) return;
-        localStorage.setItem(DASHBOARD_LAYOUT_STORAGE_KEY, JSON.stringify(layout));
-    }, [layout, layoutReady]);
+        localStorage.setItem(storageKey, JSON.stringify(layout));
+    }, [layout, layoutReady, storageKey]);
 
+    // Close add modal when edit mode is off
+    useEffect(() => {
+        if (!editMode) setShowAddModal(false);
+    }, [editMode]);
+
+    // Pointer drag/resize
     useEffect(() => {
         const handlePointerMove = (event: PointerEvent) => {
             const action = actionRef.current;
@@ -249,17 +283,16 @@ export default function DashboardGrid({ widgets }: DashboardGridProps) {
                 if (!currentItem) return current;
 
                 if (action.mode === 'move') {
-                    const movedItem = clampLayoutItem({
+                    const movedItem = helpers.clampLayoutItem({
                         ...currentItem,
                         x: action.startItem.x + deltaX,
                         y: action.startItem.y + deltaY,
                     });
-
-                    return moveWithSwap(current, action.id, movedItem, action.startItem);
+                    return helpers.moveWithSwap(current, action.id, movedItem, action.startItem);
                 }
 
                 const next = current.map(item => item.id === action.id
-                    ? clampLayoutItem({
+                    ? helpers.clampLayoutItem({
                         ...item,
                         w: action.startItem.w + deltaX,
                         h: action.startItem.h + deltaY,
@@ -267,56 +300,53 @@ export default function DashboardGrid({ widgets }: DashboardGridProps) {
                     : item
                 );
 
-                return resolveCollisions(next, action.id);
+                return helpers.resolveCollisions(next, action.id);
             });
         };
 
-        const handlePointerUp = () => {
-            actionRef.current = null;
-        };
+        const handlePointerUp = () => { actionRef.current = null; };
 
         window.addEventListener('pointermove', handlePointerMove);
         window.addEventListener('pointerup', handlePointerUp);
-
         return () => {
             window.removeEventListener('pointermove', handlePointerMove);
             window.removeEventListener('pointerup', handlePointerUp);
         };
+    // helpers is stable (memoized on defaultLayout which is a module-level constant)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const updateItem = useCallback((id: DashboardWidgetId, patch: Partial<Pick<DashboardLayoutItem, 'x' | 'y' | 'w' | 'h'>>) => {
-        setLayout(current => resolveCollisions(
-            current.map(item => item.id === id ? clampLayoutItem({ ...item, ...patch }) : item),
+        setLayout(current => helpers.resolveCollisions(
+            current.map(item => item.id === id ? helpers.clampLayoutItem({ ...item, ...patch }) : item),
             id,
         ));
-    }, []);
+    }, [helpers]);
 
     const moveItem = useCallback((id: DashboardWidgetId, patch: Partial<Pick<DashboardLayoutItem, 'x' | 'y'>>) => {
         setLayout(current => {
-            const item = current.find(layoutItem => layoutItem.id === id);
+            const item = current.find(i => i.id === id);
             if (!item) return current;
-
-            return moveWithSwap(current, id, clampLayoutItem({ ...item, ...patch }), item);
+            return helpers.moveWithSwap(current, id, helpers.clampLayoutItem({ ...item, ...patch }), item);
         });
-    }, []);
+    }, [helpers]);
 
     const updateItemField = useCallback((id: DashboardWidgetId, field: 'x' | 'y' | 'w' | 'h', value: number) => {
         if (field === 'x' || field === 'y') {
             moveItem(id, { [field]: value } as Partial<Pick<DashboardLayoutItem, 'x' | 'y'>>);
             return;
         }
-
         updateItem(id, { [field]: value } as Partial<Pick<DashboardLayoutItem, 'x' | 'y' | 'w' | 'h'>>);
     }, [moveItem, updateItem]);
 
     const nudge = useCallback((id: DashboardWidgetId, dx: number, dy: number) => {
-        const item = layout.find(layoutItem => layoutItem.id === id);
+        const item = layout.find(i => i.id === id);
         if (!item) return;
         moveItem(id, { x: item.x + dx, y: item.y + dy });
     }, [layout, moveItem]);
 
     const resizeBy = useCallback((id: DashboardWidgetId, dw: number, dh: number) => {
-        const item = layout.find(layoutItem => layoutItem.id === id);
+        const item = layout.find(i => i.id === id);
         if (!item) return;
         updateItem(id, { w: item.w + dw, h: item.h + dh });
     }, [layout, updateItem]);
@@ -330,50 +360,63 @@ export default function DashboardGrid({ widgets }: DashboardGridProps) {
         event.preventDefault();
         event.stopPropagation();
         event.currentTarget.setPointerCapture(event.pointerId);
-        actionRef.current = {
-            id: item.id,
-            mode,
-            startClientX: event.clientX,
-            startClientY: event.clientY,
-            startItem: item,
-        };
+        actionRef.current = { id: item.id, mode, startClientX: event.clientX, startClientY: event.clientY, startItem: item };
     }, [editMode]);
 
     const resetLayout = useCallback(() => {
-        const defaults = compactLayout(resolveCollisions(DEFAULT_DASHBOARD_LAYOUT));
+        const defaults = helpers.compactLayout(helpers.resolveCollisions(defaultLayout));
         setLayout(defaults);
-        localStorage.setItem(DASHBOARD_LAYOUT_STORAGE_KEY, JSON.stringify(defaults));
-    }, []);
+        localStorage.setItem(storageKey, JSON.stringify(defaults));
+    }, [helpers, defaultLayout, storageKey]);
 
     const visibleLayout = useMemo(
         () => sortLayout(layout.filter(item => widgetMap.has(item.id))),
         [layout, widgetMap],
     );
 
+    const hasAddable = (addableWidgets?.length ?? 0) > 0;
+
     return (
         <section className={`dashboard-grid-shell ${editMode ? 'dashboard-grid-shell-editing' : ''}`}>
+            {/* Toolbar */}
             <div className="dashboard-grid-toolbar">
-                <button
-                    type="button"
-                    className={`dashboard-grid-action ${editMode ? 'dashboard-grid-action-active' : ''}`}
-                    onClick={() => setEditMode(current => !current)}
-                    aria-pressed={editMode}
-                    title={editMode ? '편집 완료' : '레이아웃 편집'}
-                >
-                    {editMode ? <Check size={16} /> : <Settings2 size={16} />}
-                    <span>{editMode ? '완료' : '편집'}</span>
-                </button>
-                <button
-                    type="button"
-                    className="dashboard-grid-action"
-                    onClick={resetLayout}
-                    title="기본 배치"
-                >
-                    <RotateCcw size={16} />
-                    <span>초기화</span>
-                </button>
+                {pageLabel && (
+                    <span className="dashboard-grid-page-label">{pageLabel}</span>
+                )}
+                <div className="dashboard-grid-toolbar-actions">
+                    {editMode && hasAddable && (
+                        <button
+                            type="button"
+                            className="dashboard-grid-action dashboard-grid-action-add"
+                            onClick={() => setShowAddModal(true)}
+                        >
+                            <Plus size={15} />
+                            <span>모듈 추가</span>
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className={`dashboard-grid-action ${editMode ? 'dashboard-grid-action-active' : ''}`}
+                        onClick={() => setEditMode(current => !current)}
+                        aria-pressed={editMode}
+                        title={editMode ? '편집 완료' : '레이아웃 편집'}
+                    >
+                        {editMode ? <Check size={16} /> : <Settings2 size={16} />}
+                        <span>{editMode ? '완료' : '편집'}</span>
+                    </button>
+                    <button
+                        type="button"
+                        className="dashboard-grid-action"
+                        onClick={resetLayout}
+                        title="기본 배치"
+                    >
+                        <RotateCcw size={16} />
+                        <span>초기화</span>
+                    </button>
+                </div>
             </div>
 
+            {/* Grid */}
             <div ref={gridRef} className="dashboard-grid">
                 {visibleLayout.map(item => {
                     const widget = widgetMap.get(item.id);
@@ -388,6 +431,7 @@ export default function DashboardGrid({ widgets }: DashboardGridProps) {
                                 gridRow: `${item.y + 1} / span ${item.h}`,
                             }}
                         >
+                            {/* Edit overlay */}
                             {editMode && (
                                 <div className="dashboard-widget-editor">
                                     <button
@@ -402,30 +446,14 @@ export default function DashboardGrid({ widgets }: DashboardGridProps) {
 
                                     <div className="dashboard-widget-panel">
                                         <div className="dashboard-widget-move-buttons">
-                                            <button type="button" onClick={() => nudge(item.id, 0, -1)} title="위로 이동" aria-label="위로 이동">
-                                                <ArrowUp size={13} />
-                                            </button>
-                                            <button type="button" onClick={() => nudge(item.id, -1, 0)} title="왼쪽 이동" aria-label="왼쪽 이동">
-                                                <ArrowLeft size={13} />
-                                            </button>
-                                            <button type="button" onClick={() => nudge(item.id, 1, 0)} title="오른쪽 이동" aria-label="오른쪽 이동">
-                                                <ArrowRight size={13} />
-                                            </button>
-                                            <button type="button" onClick={() => nudge(item.id, 0, 1)} title="아래로 이동" aria-label="아래로 이동">
-                                                <ArrowDown size={13} />
-                                            </button>
-                                            <button type="button" onClick={() => resizeBy(item.id, 1, 0)} title="너비 증가" aria-label="너비 증가">
-                                                <Plus size={13} />
-                                            </button>
-                                            <button type="button" onClick={() => resizeBy(item.id, -1, 0)} title="너비 감소" aria-label="너비 감소">
-                                                <Minus size={13} />
-                                            </button>
-                                            <button type="button" onClick={() => resizeBy(item.id, 0, 1)} title="높이 증가" aria-label="높이 증가">
-                                                <Plus size={13} />
-                                            </button>
-                                            <button type="button" onClick={() => resizeBy(item.id, 0, -1)} title="높이 감소" aria-label="높이 감소">
-                                                <Minus size={13} />
-                                            </button>
+                                            <button type="button" onClick={() => nudge(item.id, 0, -1)} title="위로" aria-label="위로 이동"><ArrowUp size={13} /></button>
+                                            <button type="button" onClick={() => nudge(item.id, -1, 0)} title="왼쪽" aria-label="왼쪽 이동"><ArrowLeft size={13} /></button>
+                                            <button type="button" onClick={() => nudge(item.id, 1, 0)} title="오른쪽" aria-label="오른쪽 이동"><ArrowRight size={13} /></button>
+                                            <button type="button" onClick={() => nudge(item.id, 0, 1)} title="아래로" aria-label="아래로 이동"><ArrowDown size={13} /></button>
+                                            <button type="button" onClick={() => resizeBy(item.id, 1, 0)} title="너비 증가" aria-label="너비 증가"><Plus size={13} /></button>
+                                            <button type="button" onClick={() => resizeBy(item.id, -1, 0)} title="너비 감소" aria-label="너비 감소"><Minus size={13} /></button>
+                                            <button type="button" onClick={() => resizeBy(item.id, 0, 1)} title="높이 증가" aria-label="높이 증가"><Plus size={13} /></button>
+                                            <button type="button" onClick={() => resizeBy(item.id, 0, -1)} title="높이 감소" aria-label="높이 감소"><Minus size={13} /></button>
                                         </div>
 
                                         <div className="dashboard-widget-metrics">
@@ -447,10 +475,12 @@ export default function DashboardGrid({ widgets }: DashboardGridProps) {
                                 </div>
                             )}
 
+                            {/* Widget content */}
                             <div className="dashboard-widget-inner">
                                 {widget.node}
                             </div>
 
+                            {/* Resize handle */}
                             {editMode && (
                                 <button
                                     type="button"
@@ -462,10 +492,62 @@ export default function DashboardGrid({ widgets }: DashboardGridProps) {
                                     <Maximize2 size={15} />
                                 </button>
                             )}
+
+                            {/* Remove from page button */}
+                            {editMode && onRemoveWidget && (
+                                <button
+                                    type="button"
+                                    className="dashboard-widget-remove"
+                                    onClick={() => onRemoveWidget(item.id)}
+                                    title={`${widget.title} 이 페이지에서 제거`}
+                                    aria-label={`${widget.title} 제거`}
+                                >
+                                    <X size={12} />
+                                </button>
+                            )}
                         </article>
                     );
                 })}
             </div>
+
+            {/* Add Module Modal */}
+            {showAddModal && addableWidgets && addableWidgets.length > 0 && (
+                <div
+                    className="add-module-overlay"
+                    onClick={e => { if (e.target === e.currentTarget) setShowAddModal(false); }}
+                >
+                    <div className="add-module-panel">
+                        <div className="add-module-header">
+                            <span className="add-module-title">모듈 추가</span>
+                            <button
+                                type="button"
+                                className="add-module-close"
+                                onClick={() => setShowAddModal(false)}
+                                aria-label="닫기"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                        <p className="add-module-desc">이 페이지에 추가할 모듈을 선택하세요.</p>
+                        <div className="add-module-grid">
+                            {addableWidgets.map(widget => (
+                                <button
+                                    key={widget.id}
+                                    type="button"
+                                    className="add-module-item"
+                                    onClick={() => {
+                                        onAddWidget?.(widget.id);
+                                        setShowAddModal(false);
+                                    }}
+                                >
+                                    <Plus size={14} />
+                                    {widget.title}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
