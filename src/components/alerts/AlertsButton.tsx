@@ -70,7 +70,9 @@ export default function AlertsButton({ alerts }: { alerts: AlertItem[] }) {
                 onClick={handleToggle}
             >
                 <Bell size={18} className="text-slate-600 dark:text-slate-300" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
+                {alerts.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
+                )}
             </button>
 
             <div
@@ -91,8 +93,8 @@ export default function AlertsButton({ alerts }: { alerts: AlertItem[] }) {
             >
                 <div className="p-6">
                     <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                        <div className="w-6 h-6 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                            <Bell size={14} className="text-blue-600 dark:text-blue-400" />
+                        <div className="w-6 h-6 bg-[#E8483F]/10 rounded-lg flex items-center justify-center">
+                            <Bell size={14} className="text-[#E8483F] dark:text-[#FF6B6B]" />
                         </div>
                         실시간 알림
                     </h3>

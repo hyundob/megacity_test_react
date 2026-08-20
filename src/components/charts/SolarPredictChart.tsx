@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { ReGenPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
 import type { TooltipItem } from 'chart.js';
-import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { registerChartJS, createChartOptions, chartColor, gradientFill } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 registerChartJS();
@@ -27,38 +27,41 @@ export default function SolarPredictChart({ data }: { data: ReGenPredict[] }) {
             {
                 label: '최대 예측',
                 data: rows.map(r => r.fcstQgmx ?? null),
-                borderColor: '#f97316',
-                backgroundColor: 'rgba(249, 115, 22, 0.15)',
-                borderWidth: 2,
+                borderColor: isDark ? '#efc99a' : '#c98a4a',
+                backgroundColor: isDark ? 'rgba(239, 201, 154, 0.10)' : 'rgba(201, 138, 74, 0.08)',
+                borderWidth: 1.5,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
-                fill: false,
+                borderDash: [4, 3],
+                fill: '+1',
             },
             {
                 label: '최소 예측',
                 data: rows.map(r => r.fcstQgmn ?? null),
-                borderColor: '#eab308',
-                backgroundColor: 'rgba(234, 179, 8, 0.15)',
-                borderWidth: 2,
+                borderColor: chartColor('caramel', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
+                borderDash: [4, 3],
                 fill: false,
             },
             {
                 label: '최종 발전량 예측',
                 data: rows.map(r => r.fcstQgen ?? null),
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.18)',
+                borderColor: chartColor('copper', isDark),
+                backgroundColor: gradientFill(chartColor('copper', isDark)),
                 borderWidth: 3,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
-                fill: false,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('copper', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
+                fill: 'start',
             },
         ],
-    }), [labels, rows]);
+    }), [labels, rows, isDark]);
 
     const options = useMemo(() => {
         const baseOptions = createChartOptions('발전량 (MWh)', isDark);

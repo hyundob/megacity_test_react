@@ -29,8 +29,8 @@ export default function Navbar({
     const isDark = theme === 'dark';
 
     return (
-        <div className="mb-4 relative z-50">
-            <div className="nav-glass rounded-xl p-5">
+        <div className="nav-glass relative z-50">
+            <div className="max-w-[2400px] mx-auto px-4 sm:px-6 py-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     {/* 왼쪽: 제목 및 업데이트 정보 */}
                     <div className="flex-1 min-w-0">
@@ -62,7 +62,7 @@ export default function Navbar({
                             aria-label="자동 새로고침 토글"
                             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                                 autoRefresh
-                                    ? 'bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/20'
+                                    ? 'bg-[#049B78]/15 text-[#049B78] dark:text-[#06D6A0] border border-[#049B78]/30 hover:bg-[#049B78]/20'
                                     : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-black/10 dark:border-white/10 hover:bg-black/10 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-slate-300'
                             }`}
                             title={autoRefresh ? '자동 새로고침 켜짐 (5분마다) - 클릭하면 끔' : '자동 새로고침 꺼짐 - 클릭하면 켬'}

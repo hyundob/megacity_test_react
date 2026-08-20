@@ -11,12 +11,12 @@ const TRANSPARENT_MARKER_SRC = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQ
 
 function createMarkerContent(regionName: string, isSelected: boolean) {
     const background = isSelected
-        ? 'linear-gradient(135deg, #2563eb, #7c3aed)'
-        : 'rgba(15, 23, 42, 0.88)';
-    const dotColor = isSelected ? '#bfdbfe' : '#38bdf8';
+        ? 'linear-gradient(135deg, #E8483F, #FFD166)'
+        : 'rgba(17, 138, 178, 0.88)';
+    const dotColor = isSelected ? '#ffffff' : '#06D6A0';
     const shadow = isSelected
-        ? '0 10px 24px rgba(37, 99, 235, 0.35)'
-        : '0 6px 16px rgba(15, 23, 42, 0.25)';
+        ? '0 10px 24px rgba(232, 72, 63, 0.35)'
+        : '0 6px 16px rgba(17, 138, 178, 0.25)';
     const padding = isSelected ? '8px 12px' : '6px 10px';
     const fontSize = isSelected ? '13px' : '12px';
     const dotSize = isSelected ? '9px' : '7px';
@@ -54,7 +54,7 @@ function createMarkerContent(regionName: string, isSelected: boolean) {
                     height: ${dotSize};
                     border-radius: 999px;
                     background: ${dotColor};
-                    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.18);
+                    box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.22);
                     display: inline-block;
                     flex-shrink: 0;
                 "></span>
@@ -67,7 +67,7 @@ function createMarkerContent(regionName: string, isSelected: boolean) {
                 transform: translateX(-50%) rotate(45deg);
                 width: 12px;
                 height: 12px;
-                background: ${isSelected ? '#4f46e5' : 'rgba(15, 23, 42, 0.88)'};
+                background: ${isSelected ? '#E8483F' : 'rgba(17, 138, 178, 0.88)'};
                 border-right: 1px solid rgba(255,255,255,0.25);
                 border-bottom: 1px solid rgba(255,255,255,0.25);
             "></div>
@@ -245,8 +245,8 @@ export function JejuMapCard({
             {/* 지도 섹션 */}
             <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 border border-black/10 dark:border-white/10">
                 <div className="flex items-center gap-2 mb-2.5">
-                    <div className="w-7 h-7 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                        <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400"/>
+                    <div className="w-7 h-7 bg-[#E8483F]/10 rounded-lg flex items-center justify-center">
+                        <MapPin className="w-4 h-4 text-[#E8483F] dark:text-[#FF6B6B]"/>
                     </div>
                     <div>
                         <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">제주도 지역 선택 및 기상 현황</h2>
@@ -256,14 +256,14 @@ export function JejuMapCard({
 
                 <div
                     ref={mapContainer}
-                    className="w-full h-52 rounded-lg border border-black/10 dark:border-white/10 overflow-hidden relative bg-slate-100 dark:bg-slate-900"
+                    className="w-full h-52 rounded-lg border border-black/10 dark:border-white/10 overflow-hidden relative bg-[#eeecf0] dark:bg-[#16151c]"
                 >
                     {!isMapLoaded && (
                         <div
-                            className="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-900 z-10">
+                            className="absolute inset-0 flex items-center justify-center bg-[#eeecf0] dark:bg-[#16151c] z-10">
                             <div className="text-center">
                                 <div
-                                    className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                                    className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E8483F] mx-auto mb-2"></div>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">지도를 불러오는 중...</p>
                             </div>
                         </div>
@@ -274,8 +274,8 @@ export function JejuMapCard({
             {/* 기상 현황 섹션 */}
             <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 border border-black/10 dark:border-white/10">
                 <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                        <Cloud className="w-4 h-4 text-blue-600 dark:text-blue-400"/>
+                    <div className="w-7 h-7 bg-[#E8483F]/10 rounded-lg flex items-center justify-center">
+                        <Cloud className="w-4 h-4 text-[#E8483F] dark:text-[#FF6B6B]"/>
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{selectedRegion?.name || '제주시'} 실황
@@ -294,36 +294,36 @@ export function JejuMapCard({
                     </div>
 
                     <div
-                        className="bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20 flex flex-col items-center justify-center text-center min-h-[72px]">
-                        <div className="w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center mb-1.5">
-                            <Wind className="w-4 h-4 text-emerald-600 dark:text-emerald-400"/>
+                        className="bg-[#049B78]/10 rounded-lg p-2 border border-[#049B78]/25 flex flex-col items-center justify-center text-center min-h-[72px]">
+                        <div className="w-8 h-8 bg-[#049B78]/15 rounded-lg flex items-center justify-center mb-1.5">
+                            <Wind className="w-4 h-4 text-[#049B78] dark:text-[#06D6A0]"/>
                         </div>
                         <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mb-0.5">풍속</div>
-                        <div className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{windMs ?? '--'} m/s
+                        <div className="text-sm font-bold text-[#049B78] dark:text-[#06D6A0]">{windMs ?? '--'} m/s
                         </div>
                     </div>
 
                     <div
-                        className="bg-blue-500/10 rounded-lg p-2 border border-blue-500/20 flex flex-col items-center justify-center text-center min-h-[72px]">
-                        <div className="w-8 h-8 bg-blue-500/15 rounded-lg flex items-center justify-center mb-1.5">
-                            <Compass className="w-4 h-4 text-blue-600 dark:text-blue-400"/>
+                        className="bg-[#118AB2]/8 rounded-lg p-2 border border-[#118AB2]/20 flex flex-col items-center justify-center text-center min-h-[72px]">
+                        <div className="w-8 h-8 bg-[#118AB2]/12 rounded-lg flex items-center justify-center mb-1.5">
+                            <Compass className="w-4 h-4 text-[#118AB2] dark:text-[#3FB8DE]"/>
                         </div>
                         <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mb-0.5">풍향</div>
                         <div
-                            className="text-sm font-bold text-blue-700 dark:text-blue-300 flex flex-col items-center gap-0.5">
+                            className="text-sm font-bold text-[#118AB2] dark:text-[#3FB8DE] flex flex-col items-center gap-0.5">
                             <span className="text-base">{formatWindDirection(windDir).arrow}</span>
                             <span className="text-xs">{formatWindDirection(windDir).text}</span>
                         </div>
                     </div>
 
                     <div
-                        className="bg-violet-500/10 rounded-lg p-2 border border-violet-500/20 flex flex-col items-center justify-center text-center min-h-[72px]">
-                        <div className="w-8 h-8 bg-violet-500/15 rounded-lg flex items-center justify-center mb-1.5">
-                            <CloudRain className="w-4 h-4 text-violet-600 dark:text-violet-400"/>
+                        className="bg-[#FFD166]/10 rounded-lg p-2 border border-[#FFD166]/25 flex flex-col items-center justify-center text-center min-h-[72px]">
+                        <div className="w-8 h-8 bg-[#FFD166]/15 rounded-lg flex items-center justify-center mb-1.5">
+                            <CloudRain className="w-4 h-4 text-[#C98A00] dark:text-[#FFD166]"/>
                         </div>
                         <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mb-0.5">강수형태</div>
                         <div
-                            className="text-xs font-bold text-violet-700 dark:text-violet-300">{ptyText ?? (pty !== null && pty !== undefined ? String(pty) : '없음')}</div>
+                            className="text-xs font-bold text-[#C98A00] dark:text-[#FFD166]">{ptyText ?? (pty !== null && pty !== undefined ? String(pty) : '없음')}</div>
                     </div>
 
                     <div
@@ -339,8 +339,8 @@ export function JejuMapCard({
                 </div>
 
                 {!tempC && !windMs && !windDir && !pty && (
-                    <div className="mt-4 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20 text-center">
-                        <div className="text-xs text-yellow-700 dark:text-yellow-400 font-medium">지도를 클릭하여 지역을 선택하면 기상
+                    <div className="mt-4 p-3 bg-[#FFD166]/10 rounded-lg border border-[#FFD166]/25 text-center">
+                        <div className="text-xs text-[#C98A00] dark:text-[#FFD166] font-medium">지도를 클릭하여 지역을 선택하면 기상
                             정보가 표시됩니다.
                         </div>
                     </div>

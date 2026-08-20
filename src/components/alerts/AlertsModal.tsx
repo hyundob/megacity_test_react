@@ -74,7 +74,7 @@ export default function AlertsModal({
                 <div className="px-5 py-4 border-t border-black/10 dark:border-white/10 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/25 text-sm rounded-lg hover:bg-blue-500/25 transition-colors"
+                        className="px-4 py-2 bg-[#E8483F]/15 text-[#E8483F] dark:text-[#FF6B6B] border border-[#E8483F]/25 text-sm rounded-lg hover:bg-[#E8483F]/25 transition-colors"
                     >
                         확인
                     </button>

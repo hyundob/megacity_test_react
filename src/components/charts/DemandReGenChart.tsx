@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { DemandPredict, ReGenPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
 import type { TooltipItem } from 'chart.js';
-import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { registerChartJS, createChartOptions, chartColor, gradientFill } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 registerChartJS();
@@ -43,27 +43,33 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
             {
                 label: '수요예측',
                 data: mergedData.map(d => d.fcstQgen ?? null),
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                borderColor: chartColor('copper', isDark),
+                backgroundColor: gradientFill(chartColor('copper', isDark), 0.22, 0.01),
                 borderWidth: 3,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
-                fill: false,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('copper', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
+                fill: 'start',
             },
             {
                 label: '신재생발전 예측',
                 data: mergedData.map(d => d.renewGen ?? null),
-                borderColor: '#34d399',
-                backgroundColor: 'rgba(52, 211, 153, 0.15)',
+                borderColor: chartColor('olive', isDark),
+                backgroundColor: gradientFill(chartColor('olive', isDark), 0.22, 0.01),
                 borderWidth: 3,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
-                fill: false,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('olive', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
+                fill: 'start',
             },
         ],
-    }), [labels, mergedData]);
+    }), [labels, mergedData, isDark]);
 
     const options = useMemo(() => {
         const baseOptions = createChartOptions('전력량 (MWh)', isDark);

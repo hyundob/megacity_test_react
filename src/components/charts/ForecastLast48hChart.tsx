@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { ForecastPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
 import type { TooltipItem } from 'chart.js';
-import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { registerChartJS, createChartOptions, chartColor, gradientFill } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
+import { ChevronDown } from 'lucide-react';
 
 registerChartJS();
 
@@ -32,41 +33,42 @@ export default function ForecastLast48hChart({ data, areaGrpId, areaGrpIds, sele
             {
                 label: '기온(°C)',
                 data: rows.map(r => r.fcstTemp ?? null),
-                borderColor: '#ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                borderColor: chartColor('copper', isDark),
+                backgroundColor: gradientFill(chartColor('copper', isDark)),
                 borderWidth: 3,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
-                fill: false,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('copper', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
+                fill: 'start',
                 yAxisID: 'y',
             },
             {
                 label: '일사량(W/m²)',
                 data: rows.map(r => r.fcstSrad ?? null),
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                borderWidth: 3,
+                borderColor: chartColor('caramel', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
                 fill: false,
                 yAxisID: 'y1',
             },
             {
                 label: '풍속(m/s)',
                 data: rows.map(r => r.fcstWspd ?? null),
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                borderWidth: 3,
+                borderColor: chartColor('olive', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
                 fill: false,
                 yAxisID: 'y2',
             },
         ],
-    }), [labels, rows]);
+    }), [labels, rows, isDark]);
 
     const options = useMemo(() => {
         const baseOptions = createChartOptions('', isDark, undefined, {
@@ -102,19 +104,22 @@ export default function ForecastLast48hChart({ data, areaGrpId, areaGrpIds, sele
                 <div className="flex items-center gap-2">
                     <label className="text-xs font-medium text-slate-700 dark:text-slate-300">영역 그룹 선택:</label>
                     {areaGrpIds.length > 0 ? (
-                        <select
-                            value={selectedAreaGrpId}
-                            onChange={onAreaGrpIdChange}
-                            className="px-2 py-1 border border-black/15 dark:border-white/15 rounded-md focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
-                        >
-                            {areaGrpIds.map((id, index) => (
-                                <option key={`${id}-${index}`} value={id}>{id}</option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={selectedAreaGrpId}
+                                onChange={onAreaGrpIdChange}
+                                className="appearance-none pl-2 pr-6 py-1 border border-black/15 dark:border-white/15 rounded-md focus:ring-2 focus:ring-[#E8483F] focus:border-[#E8483F] outline-none text-xs bg-white dark:bg-[#16151c] text-slate-800 dark:text-[#f2f1f5]"
+                            >
+                                {areaGrpIds.map((id, index) => (
+                                    <option key={`${id}-${index}`} value={id}>{id}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500" />
+                        </div>
                     ) : (
                         <div className="text-xs text-red-500">영역 그룹 데이터 없음</div>
                     )}
-                    {areaGrpId && <span className="text-xs text-slate-500">(${areaGrpId})</span>}
+                    {areaGrpId && <span className="text-xs text-slate-500">({areaGrpId})</span>}
                 </div>
             </div>
             <div className="w-full h-[280px]" role="img" aria-label="최근 48시간 수소생산단지 기상 예측 차트">

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { DemandPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
 import type { TooltipItem } from 'chart.js';
-import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { registerChartJS, createChartOptions, chartColor, gradientFill } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 registerChartJS();
@@ -27,45 +27,51 @@ export default function DemandPredictChart({ data }: { data: DemandPredict[] }) 
             {
                 label: '수요예측 최대',
                 data: rows.map(r => r.fcstQgmx ?? null),
-                borderColor: '#f97316',
-                backgroundColor: 'rgba(249, 115, 22, 0.15)',
-                borderWidth: 2,
+                borderColor: chartColor('caramel', isDark),
+                backgroundColor: isDark ? 'rgba(255, 209, 102, 0.10)' : 'rgba(201, 138, 0, 0.08)',
+                borderWidth: 1.5,
                 tension: 0.3,
                 pointRadius: 0,
-                borderDash: [6, 4],
+                borderDash: [4, 3],
+                fill: '+1',
             },
             {
                 label: '수요예측 최소',
                 data: rows.map(r => r.fcstQgmn ?? null),
-                borderColor: '#14b8a6',
-                backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                borderWidth: 2,
+                borderColor: chartColor('olive', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
                 tension: 0.3,
                 pointRadius: 0,
-                borderDash: [6, 4],
+                borderDash: [4, 3],
+                fill: false,
             },
             {
                 label: '최종 수요예측',
                 data: rows.map(r => r.fcstQgen ?? null),
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.18)',
-                borderWidth: 3,
+                borderColor: chartColor('forest', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
+                fill: false,
             },
             {
                 label: '실제 수요',
                 data: rows.map(r => r.currPwrTot ?? null),
-                borderColor: '#0ea5e9',
-                backgroundColor: 'rgba(14, 165, 233, 0.25)',
+                borderColor: chartColor('copper', isDark),
+                backgroundColor: gradientFill(chartColor('copper', isDark)),
                 borderWidth: 3,
                 tension: 0.35,
-                pointRadius: 3,
+                pointRadius: 0,
                 pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('copper', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
+                fill: 'start',
             },
         ],
-    }), [labels, rows]);
+    }), [labels, rows, isDark]);
 
     const options = useMemo(() => {
         const baseOptions = createChartOptions('전력량 (MWh)', isDark);

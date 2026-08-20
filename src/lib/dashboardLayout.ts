@@ -54,28 +54,30 @@ export const PAGE_LABELS: Record<PageId, string> = {
 };
 
 // Page 1 — 실시간 현황 (max 10 rows)
+// maxW/maxH: 기본 크기 대비 과도하게 커지는 것을 막기 위한 상한 (지정하지 않으면 12열/100행까지 확장되어
+// 리사이즈 드래그 한 번에 위젯이 그리드 전체를 뒤덮는 문제가 있었음)
 const PAGE1_DEFAULT_LAYOUT: DashboardLayoutItem[] = [
-    { id: 'jeju-map',      x: 0, y: 0, w: 4, h: 10, minW: 4, minH: 8  },
-    { id: 'kpi',           x: 4, y: 0, w: 4, h: 4,  minW: 3, minH: 4  },
-    { id: 'demand',        x: 8, y: 0, w: 4, h: 6,  minW: 3, minH: 4  },
-    { id: 'sukub-info',    x: 4, y: 4, w: 4, h: 6,  minW: 3, minH: 3  },
-    { id: 'system-status', x: 8, y: 6, w: 4, h: 4,  minW: 3, minH: 3  },
+    { id: 'jeju-map',      x: 0, y: 0, w: 4, h: 10, minW: 4, minH: 8, maxW: 8,  maxH: 16 },
+    { id: 'kpi',           x: 4, y: 0, w: 4, h: 5,  minW: 3, minH: 5, maxW: 8,  maxH: 10 },
+    { id: 'demand',        x: 8, y: 0, w: 4, h: 6,  minW: 3, minH: 4, maxW: 8,  maxH: 12 },
+    { id: 'sukub-info',    x: 4, y: 5, w: 4, h: 6,  minW: 3, minH: 3, maxW: 8,  maxH: 12 },
+    { id: 'system-status', x: 8, y: 6, w: 4, h: 4,  minW: 3, minH: 3, maxW: 8,  maxH: 10 },
 ];
 
 // Page 2 — 발전 / 에너지 (max 10 rows)
 const PAGE2_DEFAULT_LAYOUT: DashboardLayoutItem[] = [
-    { id: 'operation',    x: 0, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
-    { id: 'curt',         x: 6, y: 0, w: 6, h: 5, minW: 3, minH: 3 },
-    { id: 'solar',        x: 0, y: 5, w: 4, h: 5, minW: 4, minH: 3 },
-    { id: 'wind',         x: 4, y: 5, w: 4, h: 5, minW: 4, minH: 3 },
-    { id: 'demand-regen', x: 8, y: 5, w: 4, h: 5, minW: 4, minH: 4 },
+    { id: 'operation',    x: 0, y: 0, w: 6, h: 5, minW: 4, minH: 4, maxW: 10, maxH: 11 },
+    { id: 'curt',         x: 6, y: 0, w: 6, h: 5, minW: 3, minH: 3, maxW: 10, maxH: 11 },
+    { id: 'solar',        x: 0, y: 5, w: 4, h: 5, minW: 4, minH: 3, maxW: 8,  maxH: 11 },
+    { id: 'wind',         x: 4, y: 5, w: 4, h: 5, minW: 4, minH: 3, maxW: 8,  maxH: 11 },
+    { id: 'demand-regen', x: 8, y: 5, w: 4, h: 5, minW: 4, minH: 4, maxW: 8,  maxH: 11 },
 ];
 
 // Page 3 — 수소 / 예측 (max 10 rows)
 const PAGE3_DEFAULT_LAYOUT: DashboardLayoutItem[] = [
-    { id: 'weather',           x: 0, y: 0, w: 4, h: 10, minW: 3, minH: 3 },
-    { id: 'hydrogen-scenario', x: 4, y: 0, w: 8, h: 5,  minW: 4, minH: 3 },
-    { id: 'forecast-48h',      x: 4, y: 5, w: 8, h: 5,  minW: 6, minH: 4 },
+    { id: 'weather',           x: 0, y: 0, w: 4, h: 10, minW: 3, minH: 3, maxW: 8,  maxH: 16 },
+    { id: 'hydrogen-scenario', x: 4, y: 0, w: 8, h: 5,  minW: 4, minH: 3, maxW: 12, maxH: 11 },
+    { id: 'forecast-48h',      x: 4, y: 5, w: 8, h: 5,  minW: 6, minH: 4, maxW: 12, maxH: 11 },
 ];
 
 export const PAGE_DEFAULT_LAYOUTS: Record<PageId, DashboardLayoutItem[]> = {

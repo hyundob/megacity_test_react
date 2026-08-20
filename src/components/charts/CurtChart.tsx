@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { JejuCurtPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
 import type { TooltipItem } from 'chart.js';
-import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { registerChartJS, createChartOptions, chartColor } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 registerChartJS();
@@ -27,29 +27,31 @@ export default function CurtChart({ data }: { data: JejuCurtPredict[] }) {
             {
                 label: '최소출력',
                 data: rows.map(r => r.fcstMinpw ?? null),
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                borderWidth: 3,
+                borderColor: chartColor('forest', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
                 fill: false,
                 yAxisID: 'y',
             },
             {
                 label: '출력제어',
                 data: rows.map(r => r.fcstCurt ?? null),
-                borderColor: '#dc2626',
-                backgroundColor: 'rgba(220, 38, 38, 0.15)',
+                borderColor: chartColor('copper', isDark),
+                backgroundColor: 'transparent',
                 borderWidth: 3,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('copper', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
                 fill: false,
                 yAxisID: 'y1',
             },
         ],
-    }), [labels, rows]);
+    }), [labels, rows, isDark]);
 
     const options = useMemo(() => {
         const baseOptions = createChartOptions('', isDark, {

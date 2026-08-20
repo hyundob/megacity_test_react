@@ -30,7 +30,8 @@ import type { ForecastPredict, JejuRegion } from '@/lib/types';
 
 type DashboardData = ReturnType<typeof useDashboardData>;
 type KpiData = ReturnType<typeof useKPICalculations>;
-type WidgetColor = 'blue' | 'orange' | 'cyan' | 'amber' | 'emerald' | 'violet' | 'pink' | 'teal';
+// 위젯 강조색은 팔레트에서 나온 4가지 역할로만 구성한다 (위젯마다 다른 네온 색을 쓰지 않는다).
+type WidgetColor = 'copper' | 'caramel' | 'olive' | 'forest';
 
 const H2_PRODUCTION_KG_PER_KWH = 0.115;
 const H2_STORAGE_MAX_KG = 1000;
@@ -77,14 +78,12 @@ function WidgetCard({
     return (
         <div className={`dashboard-widget-card glass-card glass-card-${color}`}>
             <div className="dashboard-widget-header">
+                <Icon className={`dashboard-widget-icon w-4 h-4 shrink-0 ${iconColorClass(color)}`} />
                 <div className="min-w-0">
                     <h2 className="dashboard-widget-title">{title}</h2>
                     {subtitle && (
                         <p className="dashboard-widget-subtitle">{subtitle}</p>
                     )}
-                </div>
-                <div className={`dashboard-widget-icon icon-box icon-box-${color}`}>
-                    <Icon className={`w-6 h-6 ${iconColorClass(color)}`} />
                 </div>
             </div>
             <div className="dashboard-widget-card-body">
@@ -96,14 +95,10 @@ function WidgetCard({
 
 function iconColorClass(color: WidgetColor) {
     const colors: Record<WidgetColor, string> = {
-        blue: 'text-blue-500 dark:text-blue-400',
-        orange: 'text-orange-500 dark:text-orange-400',
-        cyan: 'text-cyan-500 dark:text-cyan-400',
-        amber: 'text-amber-500 dark:text-amber-400',
-        emerald: 'text-emerald-500 dark:text-emerald-400',
-        violet: 'text-violet-500 dark:text-violet-400',
-        pink: 'text-pink-500 dark:text-pink-400',
-        teal: 'text-teal-500 dark:text-teal-400',
+        copper: 'text-[#E8483F] dark:text-[#FF6B6B]',
+        caramel: 'text-[#C98A00] dark:text-[#FFD166]',
+        olive: 'text-[#049B78] dark:text-[#06D6A0]',
+        forest: 'text-[#118AB2] dark:text-[#3FB8DE]',
     };
 
     return colors[color];
@@ -129,14 +124,14 @@ function EmptyState({ label = '데이터 로딩 중...' }: { label?: string }) {
 
 function DemandWidget({ data, kpi }: { data: DashboardData; kpi: KpiData }) {
     return (
-        <WidgetCard title="전력 수요" subtitle="현재 운영 데이터" icon={Zap} color="blue">
+        <WidgetCard title="전력 수요" subtitle="현재 운영 데이터" icon={Zap} color="copper">
             <div className="mb-3">
                 <div className="dashboard-demand-value">
                     {kpi.currentDemand != null ? `${Math.round(kpi.currentDemand).toLocaleString()}` : '--'}
                     <span>MW</span>
                 </div>
                 {kpi.currentRenewable != null && kpi.currentDemand != null && (
-                    <div className="text-xs text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+                    <div className="text-xs text-[#049B78] dark:text-[#06D6A0] inline-flex items-center gap-1.5 bg-[#049B78]/10 border border-[#049B78]/25 px-2.5 py-1 rounded-lg">
                         <TrendingUp className="w-4 h-4" />
                         <span>재생에너지 {kpi.renewableRatio.toFixed(1)}%</span>
                     </div>
@@ -157,7 +152,7 @@ function DemandWidget({ data, kpi }: { data: DashboardData; kpi: KpiData }) {
 
 function CurtWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="출력제어" subtitle="출력제어 예측" icon={Activity} color="orange">
+        <WidgetCard title="출력제어" subtitle="출력제어 예측" icon={Activity} color="copper">
             {data.jejuCurtPredictToday.length > 0 ? (
                 <ChartShell>
                     <CurtChart data={data.jejuCurtPredictToday} />
@@ -171,7 +166,7 @@ function CurtWidget({ data }: { data: DashboardData }) {
 
 function WeatherWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="수소생산단지 기상 예측" subtitle="일간 NWP 예측 자료" icon={Cloud} color="cyan">
+        <WidgetCard title="수소생산단지 기상 예측" subtitle="일간 NWP 예측 자료" icon={Cloud} color="caramel">
             {data.forecastPredict ? <ForecastInfoCard data={data.forecastPredict} /> : <EmptyState />}
         </WidgetCard>
     );
@@ -179,7 +174,7 @@ function WeatherWidget({ data }: { data: DashboardData }) {
 
 function JejuMapWidget({ data, onRegionSelect }: { data: DashboardData; onRegionSelect: (region: JejuRegion) => Promise<void> }) {
     return (
-        <WidgetCard title="제주 지역" subtitle="지역 선택 및 기상 현황" icon={Cloud} color="teal">
+        <WidgetCard title="제주 지역" subtitle="지역 선택 및 기상 현황" icon={Cloud} color="forest">
             <JejuMapCard
                 selectedRegion={data.selectedJejuRegion}
                 onRegionSelect={onRegionSelect}
@@ -196,7 +191,7 @@ function JejuMapWidget({ data, onRegionSelect }: { data: DashboardData; onRegion
 
 function OperationWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="전력 운영" subtitle="계통 운영 현황" icon={Zap} color="pink">
+        <WidgetCard title="전력 운영" subtitle="계통 운영 현황" icon={Zap} color="forest">
             {data.sukubOperationToday.length > 0 ? (
                 <ChartShell>
                     <JejuOperationChart data={data.sukubOperationToday} />
@@ -210,7 +205,7 @@ function OperationWidget({ data }: { data: DashboardData }) {
 
 function DemandReGenWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="수요 vs 재생에너지" subtitle="전력수요와 재생에너지 비교" icon={TrendingUp} color="cyan">
+        <WidgetCard title="수요 vs 재생에너지" subtitle="전력수요와 재생에너지 비교" icon={TrendingUp} color="olive">
             {data.demandPredict.length > 0 && (data.reGenPredictData.length > 0 || data.windPredictData.length > 0) ? (
                 <ChartShell>
                     <DemandReGenChart
@@ -231,7 +226,7 @@ function HydrogenScenarioWidget({ kpi }: { kpi: KpiData }) {
     const isStorageMaxReached = h2EstimateRaw != null && h2EstimateRaw > H2_STORAGE_MAX_KG;
 
     return (
-        <WidgetCard title="잉여 전력 기반 수소 전환" subtitle="재생에너지 발전 - 현재 수요 기반 추산" icon={FlaskConical} color="violet">
+        <WidgetCard title="잉여 전력 기반 수소 전환" subtitle="재생에너지 발전 - 현재 수요 기반 추산" icon={FlaskConical} color="olive">
             {surplusMW == null ? (
                 <EmptyState />
             ) : (
@@ -251,7 +246,7 @@ function HydrogenScenarioWidget({ kpi }: { kpi: KpiData }) {
                     {h2Estimate != null ? (
                         <div className="space-y-2">
                             <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-3">수소 생산량 추산 (kg/h)</p>
-                            <ScenarioBar label="기준 계수" value={h2Estimate} percent={100} tone="bg-violet-500" />
+                            <ScenarioBar label="기준 계수" value={h2Estimate} percent={100} tone="bg-[#049B78]" />
                             {isStorageMaxReached && (
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
                                     저장용기 최대치 1,000kg 제한이 적용되었습니다.
@@ -275,7 +270,7 @@ function HydrogenScenarioWidget({ kpi }: { kpi: KpiData }) {
 
 function SolarWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="태양광 발전" subtitle="태양광 발전 예측" icon={Sun} color="amber">
+        <WidgetCard title="태양광 발전" subtitle="태양광 발전 예측" icon={Sun} color="caramel">
             {data.reGenPredictData.length > 0 ? (
                 <ChartShell>
                     <SolarPredictChart data={data.reGenPredictData} />
@@ -289,7 +284,7 @@ function SolarWidget({ data }: { data: DashboardData }) {
 
 function WindWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="풍력 발전" subtitle="풍력 발전 예측" icon={Wind} color="emerald">
+        <WidgetCard title="풍력 발전" subtitle="풍력 발전 예측" icon={Wind} color="olive">
             {data.windPredictData.length > 0 ? (
                 <ChartShell>
                     <WindPredictChart data={data.windPredictData} />
@@ -305,7 +300,7 @@ function KpiWidget({ kpi }: { kpi: KpiData }) {
     const { h2Estimate } = calculateSurplusHydrogenKg(kpi);
 
     return (
-        <WidgetCard title="KPI" subtitle="핵심 지표" icon={TrendingUp} color="cyan">
+        <WidgetCard title="KPI" subtitle="핵심 지표" icon={TrendingUp} color="copper">
             <div className="grid grid-cols-2 gap-3">
                 <KpiTile icon={Zap} color="blue" label="현재 수요" value={kpi.currentDemand} unit="MW" />
                 <KpiTile icon={Sun} color="green" label="신재생" value={kpi.currentRenewable} unit="MW" />
@@ -318,7 +313,7 @@ function KpiWidget({ kpi }: { kpi: KpiData }) {
 
 function SukubInfoWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="계통 운영 정보" subtitle="전력 시스템 현황" icon={Zap} color="pink">
+        <WidgetCard title="계통 운영 정보" subtitle="전력 시스템 현황" icon={Zap} color="forest">
             {data.sukubOperation ? (
                 <SukubInfoCard data={data.sukubOperation} dailyData={data.sukubOperationToday} />
             ) : (
@@ -330,7 +325,7 @@ function SukubInfoWidget({ data }: { data: DashboardData }) {
 
 function SystemStatusWidget({ data }: { data: DashboardData }) {
     return (
-        <WidgetCard title="시스템 상태" subtitle="서비스 응답 시간" icon={Activity} color="teal">
+        <WidgetCard title="시스템 상태" subtitle="서비스 응답 시간" icon={Activity} color="forest">
             <SystemStatusCard
                 latApi={data.latApi}
                 latDb={data.latDb}
@@ -357,7 +352,7 @@ function Forecast48hWidget({
     onAreaGrpIdChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }) {
     return (
-        <WidgetCard title="최근 48시간 수소단지 기상 예측" subtitle="영역별 기온/일사량/풍속 트렌드" icon={Cloud} color="violet">
+        <WidgetCard title="최근 48시간 수소단지 기상 예측" subtitle="영역별 기온/일사량/풍속 트렌드" icon={Cloud} color="caramel">
             {data.forecastPredictLast48h.length > 0 ? (
                 <ChartShell>
                     <ForecastLast48hChart
@@ -398,7 +393,7 @@ function ScenarioBar({ label, value, percent, tone }: { label: string; value: nu
             <div className="flex-1 bg-black/10 dark:bg-white/10 rounded-full h-2">
                 <div className={`${tone} h-2 rounded-full`} style={{ width: `${percent}%` }} />
             </div>
-            <span className="text-sm font-bold text-violet-600 dark:text-violet-400 w-20 text-right">
+            <span className="text-sm font-bold text-[#049B78] dark:text-[#06D6A0] w-20 text-right">
                 {formattedValue}
             </span>
         </div>
@@ -420,22 +415,21 @@ function KpiTile({
     unit: string;
     decimals?: number;
 }) {
+    // blue→copper, green→olive, purple→caramel, cyan→forest (kpi-card-* 상단 바와 짝을 맞춤)
     const iconClasses: Record<'blue' | 'green' | 'purple' | 'cyan', string> = {
-        blue: 'bg-blue-500/15 border-blue-500/25 text-blue-600 dark:text-blue-400',
-        green: 'bg-emerald-500/15 border-emerald-500/25 text-emerald-600 dark:text-emerald-400',
-        purple: 'bg-violet-500/15 border-violet-500/25 text-violet-600 dark:text-violet-400',
-        cyan: 'bg-cyan-500/15 border-cyan-500/25 text-cyan-600 dark:text-cyan-400',
+        blue: 'text-[#E8483F] dark:text-[#FF6B6B]',
+        green: 'text-[#049B78] dark:text-[#06D6A0]',
+        purple: 'text-[#C98A00] dark:text-[#FFD166]',
+        cyan: 'text-[#118AB2] dark:text-[#3FB8DE]',
     };
 
     return (
         <div className={`kpi-card kpi-card-${color} p-3`}>
-            <div className="flex items-center gap-2 mb-1.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${iconClasses[color]}`}>
-                    <Icon className="w-4 h-4" />
-                </div>
+            <div className="flex items-center gap-1.5 mb-1.5">
+                <Icon className={`w-3.5 h-3.5 ${iconClasses[color]}`} />
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{label}</span>
             </div>
-            <div className="text-xs text-slate-600 dark:text-slate-400 mb-1 font-medium">{label}</div>
-            <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 {value != null ? (decimals ? value.toFixed(decimals) : Math.round(value).toLocaleString()) : '--'}
             </div>
             <div className="text-xs text-slate-500">{unit}</div>

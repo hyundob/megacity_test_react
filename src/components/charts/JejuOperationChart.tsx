@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { SukubOperationItem } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
 import type { TooltipItem } from 'chart.js';
-import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { registerChartJS, createChartOptions, chartColor, gradientFill } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 registerChartJS();
@@ -27,19 +27,23 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
             {
                 label: '현재수요',
                 data: rows.map(r => r.currPwrTot ?? null),
-                borderColor: '#a8b8d8',
-                backgroundColor: 'rgba(168, 184, 216, 0.15)',
+                borderColor: chartColor('forest', isDark),
+                backgroundColor: gradientFill(chartColor('forest', isDark)),
                 borderWidth: 3,
                 tension: 0.35,
                 pointRadius: 0,
-                fill: false,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('forest', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
+                fill: 'start',
             },
             {
                 label: '태양광발전',
                 data: rows.map(r => r.renewPwrSolar ?? null),
-                borderColor: '#fde68a',
-                backgroundColor: 'rgba(253, 230, 138, 0.15)',
-                borderWidth: 3,
+                borderColor: chartColor('caramel', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
                 tension: 0.35,
                 pointRadius: 0,
                 fill: false,
@@ -47,15 +51,15 @@ export default function JejuOperationChart({ data }: { data: SukubOperationItem[
             {
                 label: '풍력발전',
                 data: rows.map(r => r.renewPwrWind ?? null),
-                borderColor: '#93c5fd',
-                backgroundColor: 'rgba(147, 197, 253, 0.15)',
-                borderWidth: 3,
+                borderColor: chartColor('olive', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
                 tension: 0.35,
                 pointRadius: 0,
                 fill: false,
             },
         ],
-    }), [labels, rows]);
+    }), [labels, rows, isDark]);
 
     const options = useMemo(() => {
         const baseOptions = createChartOptions('전력량 (MW)', isDark);

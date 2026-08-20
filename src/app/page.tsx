@@ -24,6 +24,7 @@ export default function Page() {
     const { autoRefresh, setAutoRefresh, load, setSelectedJejuRegion, loadJejuWeather } = d;
     const [selectedAreaGrpId, setSelectedAreaGrpId] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(0);
+    const [pageLabelFlash, setPageLabelFlash] = useState(true);
     const [visibleWidgets, setVisibleWidgets] = useState<Record<PageId, DashboardWidgetId[]>>(PAGE_DEFAULT_WIDGETS);
     const [visibleLoaded, setVisibleLoaded] = useState(false);
 
@@ -60,6 +61,14 @@ export default function Page() {
         if (!el) return;
         el.scrollTo({ top: index * el.clientHeight, behavior: 'smooth' });
     }, []);
+
+    // Show the active page's label briefly after it changes, then let it fade
+    // out — keeping it up permanently covered chart content behind it.
+    useEffect(() => {
+        setPageLabelFlash(true);
+        const timer = setTimeout(() => setPageLabelFlash(false), 2000);
+        return () => clearTimeout(timer);
+    }, [currentPage]);
 
     // KPI
     const kpi = useKPICalculations({ sukubOperation: d.sukubOperation, hgGenUtilPct: d.hgGenUtilPct });
@@ -129,17 +138,15 @@ export default function Page() {
         <div className="snap-outer">
             {/* Fixed navbar */}
             <div className="snap-navbar">
-                <div className="max-w-[1920px] mx-auto px-3 sm:px-4">
-                    <Navbar
-                        lastUpdated={d.lastUpdated}
-                        apiStatus={d.apiStatus}
-                        dbStatus={d.dbStatus}
-                        autoRefresh={d.autoRefresh}
-                        onToggleAutoRefresh={handleToggleAutoRefresh}
-                        onManualRefresh={handleManualRefresh}
-                        alerts={d.alerts}
-                    />
-                </div>
+                <Navbar
+                    lastUpdated={d.lastUpdated}
+                    apiStatus={d.apiStatus}
+                    dbStatus={d.dbStatus}
+                    autoRefresh={d.autoRefresh}
+                    onToggleAutoRefresh={handleToggleAutoRefresh}
+                    onManualRefresh={handleManualRefresh}
+                    alerts={d.alerts}
+                />
             </div>
 
             {/* Right-side page indicators */}
@@ -148,7 +155,7 @@ export default function Page() {
                     <button
                         key={pageId}
                         type="button"
-                        className={`page-dot ${currentPage === i ? 'page-dot-active' : ''}`}
+                        className={`page-dot ${currentPage === i ? 'page-dot-active' : ''} ${currentPage === i && pageLabelFlash ? 'page-dot-recent' : ''}`}
                         onClick={() => scrollToPage(i)}
                         title={PAGE_LABELS[pageId]}
                         aria-label={PAGE_LABELS[pageId]}
@@ -163,7 +170,7 @@ export default function Page() {
             <div ref={snapRef} className="snap-scroll" onScroll={handleScroll}>
                 {PAGES.map((pageId) => (
                     <div key={pageId} className="snap-page">
-                        <div className="snap-page-inner max-w-[1920px] mx-auto px-3 sm:px-4">
+                        <div className="snap-page-inner w-full max-w-[2400px] mx-auto px-4 sm:px-6">
                             <DashboardGrid
                                 widgets={getPageWidgets(pageId)}
                                 storageKey={PAGE_STORAGE_KEYS[pageId]}

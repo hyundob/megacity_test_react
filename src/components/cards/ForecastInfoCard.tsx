@@ -77,17 +77,17 @@ function ForecastMetric({
     wide?: boolean;
 }) {
     const toneClasses = {
-        orange: 'bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-300',
+        orange: 'bg-[#FFD166]/10 border-[#FFD166]/25 text-[#C98A00] dark:text-[#FFD166]',
         red: 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-300',
-        blue: 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-300',
-        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-300',
+        blue: 'bg-[#118AB2]/8 border-[#118AB2]/20 text-[#118AB2] dark:text-[#3FB8DE]',
+        emerald: 'bg-[#049B78]/10 border-[#049B78]/25 text-[#049B78] dark:text-[#06D6A0]',
         slate: 'bg-black/5 border-black/8 text-slate-700 dark:bg-white/5 dark:border-white/8 dark:text-slate-200',
     };
     const iconClasses = {
-        orange: 'bg-orange-500/15 text-orange-600 dark:text-orange-400',
+        orange: 'bg-[#FFD166]/15 text-[#C98A00] dark:text-[#FFD166]',
         red: 'bg-red-500/15 text-red-600 dark:text-red-400',
-        blue: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
-        emerald: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+        blue: 'bg-[#118AB2]/12 text-[#118AB2] dark:text-[#3FB8DE]',
+        emerald: 'bg-[#049B78]/15 text-[#049B78] dark:text-[#06D6A0]',
         slate: 'bg-black/8 text-slate-500 dark:bg-white/10 dark:text-slate-400',
     };
 

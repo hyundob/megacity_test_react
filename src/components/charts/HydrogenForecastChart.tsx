@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { HgGenPredict } from '@/lib/types';
 import { Line } from 'react-chartjs-2';
 import type { TooltipItem } from 'chart.js';
-import { registerChartJS, createChartOptions } from '@/lib/utils/chartConfig';
+import { registerChartJS, createChartOptions, chartColor, gradientFill } from '@/lib/utils/chartConfig';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 registerChartJS();
@@ -24,25 +24,27 @@ export default function HydrogenForecastChart({ data }: { data: HgGenPredict[] }
             {
                 label: '최종생산량',
                 data: rows.map(r => r.fcstQgen ?? null),
-                borderColor: isDark ? '#ffffff' : '#8b5cf6',
-                backgroundColor: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(139,92,246,0.15)',
+                borderColor: chartColor('olive', isDark),
+                backgroundColor: gradientFill(chartColor('olive', isDark)),
                 borderWidth: 3,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
-                fill: true,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: chartColor('olive', isDark),
+                pointHoverBorderColor: isDark ? '#181922' : '#ffffff',
+                pointHoverBorderWidth: 2,
+                fill: 'start',
                 yAxisID: 'y',
             },
             {
                 label: '예측설비용량',
                 data: rows.map(r => r.fcstCapa ?? null),
-                borderColor: '#fbbf24',
-                backgroundColor: 'rgba(251, 191, 36, 0.4)',
-                borderWidth: 3,
+                borderColor: chartColor('caramel', isDark),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
                 tension: 0.35,
                 pointRadius: 0,
-                borderDash: [6, 4],
-                fill: true,
+                fill: false,
                 yAxisID: 'y1',
             },
         ],

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchWithTiming, ENDPOINTS, getJejuWeatherRegionUrl } from './api';
 import {
     ForecastPredict, SukubOperation, SukubOperationItem, ReGenPredict, DemandPredict, JejuCurtPredict,
@@ -55,6 +55,11 @@ export function useDashboardData() {
     const [ncstPtyText, setNcstPtyText] = useState<string | null>(null);
     const [ncstSky, setNcstSky] = useState<number | null>(null);
     const [selectedJejuRegion, setSelectedJejuRegion] = useState<JejuRegion>(JEJU_REGIONS[0]); // 기본값: 제주시
+    // load()가 지역 변경 시마다 재생성되어 전체 대시보드를 다시 불러오는 것을 막기 위해 ref로 최신값 참조
+    const selectedJejuRegionRef = useRef(selectedJejuRegion);
+    useEffect(() => {
+        selectedJejuRegionRef.current = selectedJejuRegion;
+    }, [selectedJejuRegion]);
 
     const load = useCallback(async () => {
         setIsLoading(true);
@@ -160,7 +165,8 @@ export function useDashboardData() {
 
         // Weather via backend (nowcast + forecast) - 선택된 지역
         try {
-            const weatherUrl = getJejuWeatherRegionUrl(selectedJejuRegion.nx, selectedJejuRegion.ny);
+            const { nx, ny } = selectedJejuRegionRef.current;
+            const weatherUrl = getJejuWeatherRegionUrl(nx, ny);
             const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
             if (weatherRes.ok) {
                 const weatherJson = await weatherRes.json();
@@ -198,7 +204,7 @@ export function useDashboardData() {
             setDbStatus('error');
             console.warn('Dashboard data load error:', err);
         }
-    }, [selectedJejuRegion.nx, selectedJejuRegion.ny]);
+    }, []);
 
     // 클라이언트에서 localStorage 값 복원
     useEffect(() => {

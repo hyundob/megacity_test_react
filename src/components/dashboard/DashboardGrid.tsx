@@ -237,13 +237,44 @@ export default function DashboardGrid({
 
     const helpers = useMemo(() => createHelpers(defaultLayout), [defaultLayout]);
 
+    // Row count the page is designed for — used to scale row height to fill
+    // whatever vertical space the viewport actually has (see rowHeight effect below).
+    const targetRows = useMemo(
+        () => Math.max(1, ...defaultLayout.map(item => item.y + item.h)),
+        [defaultLayout],
+    );
+
     const [layout, setLayout] = useState<DashboardLayoutItem[]>(defaultLayout);
     const [editMode, setEditMode] = useState(false);
     const [layoutReady, setLayoutReady] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [rowHeight, setRowHeight] = useState(DASHBOARD_GRID_ROW_HEIGHT);
 
     const gridRef = useRef<HTMLDivElement>(null);
     const actionRef = useRef<DragAction | null>(null);
+    const rowHeightRef = useRef(DASHBOARD_GRID_ROW_HEIGHT);
+
+    // Rows fill the available height instead of staying a fixed 52px — on a
+    // taller viewport (e.g. QHD vs FHD) the container has more room than the
+    // page's fixed row count needs, so rows grow to use it instead of leaving
+    // dead space below the content. Mirrors how column width already reads
+    // grid.clientWidth live; this does the same for the vertical axis.
+    useEffect(() => {
+        const grid = gridRef.current;
+        if (!grid) return;
+
+        const recompute = () => {
+            const available = grid.clientHeight - DASHBOARD_GRID_GAP * (targetRows - 1);
+            const next = clamp(available / targetRows, DASHBOARD_GRID_ROW_HEIGHT, DASHBOARD_GRID_ROW_HEIGHT * 2);
+            rowHeightRef.current = next;
+            setRowHeight(next);
+        };
+
+        recompute();
+        const observer = new ResizeObserver(recompute);
+        observer.observe(grid);
+        return () => observer.disconnect();
+    }, [targetRows]);
 
     // Load from localStorage
     useEffect(() => {
@@ -274,7 +305,7 @@ export default function DashboardGrid({
             event.preventDefault();
             const colWidth = (grid.clientWidth - DASHBOARD_GRID_GAP * (DASHBOARD_GRID_COLUMNS - 1)) / DASHBOARD_GRID_COLUMNS;
             const colStep = colWidth + DASHBOARD_GRID_GAP;
-            const rowStep = DASHBOARD_GRID_ROW_HEIGHT + DASHBOARD_GRID_GAP;
+            const rowStep = rowHeightRef.current + DASHBOARD_GRID_GAP;
             const deltaX = Math.round((event.clientX - action.startClientX) / colStep);
             const deltaY = Math.round((event.clientY - action.startClientY) / rowStep);
 
@@ -417,7 +448,11 @@ export default function DashboardGrid({
             </div>
 
             {/* Grid */}
-            <div ref={gridRef} className="dashboard-grid">
+            <div
+                ref={gridRef}
+                className="dashboard-grid"
+                style={{ '--grid-row-h': `${rowHeight}px` } as React.CSSProperties}
+            >
                 {visibleLayout.map(item => {
                     const widget = widgetMap.get(item.id);
                     if (!widget) return null;
