@@ -5,7 +5,6 @@ export const DASHBOARD_GRID_GAP = 12;
 export type DashboardWidgetId =
     | 'demand'
     | 'curt'
-    | 'weather'
     | 'jeju-map'
     | 'operation'
     | 'demand-regen'
@@ -14,8 +13,7 @@ export type DashboardWidgetId =
     | 'wind'
     | 'kpi'
     | 'sukub-info'
-    | 'system-status'
-    | 'forecast-48h';
+    | 'system-status';
 
 export type PageId = 'page1' | 'page2' | 'page3';
 
@@ -35,7 +33,7 @@ export type DashboardLayoutItem = {
 export const PAGE_STORAGE_KEYS: Record<PageId, string> = {
     page1: 'megacity-layout-page1-v1',
     page2: 'megacity-layout-page2-v1',
-    page3: 'megacity-layout-page3-v1',
+    page3: 'megacity-layout-page3-v3',
 };
 
 export const VISIBLE_WIDGETS_STORAGE_KEY = 'megacity-visible-widgets-v1';
@@ -44,13 +42,13 @@ export const VISIBLE_WIDGETS_STORAGE_KEY = 'megacity-visible-widgets-v1';
 export const PAGE_DEFAULT_WIDGETS: Record<PageId, DashboardWidgetId[]> = {
     page1: ['jeju-map', 'kpi', 'demand', 'sukub-info', 'system-status'],
     page2: ['operation', 'curt', 'solar', 'wind', 'demand-regen'],
-    page3: ['weather', 'hydrogen-scenario', 'forecast-48h'],
+    page3: ['hydrogen-scenario'],
 };
 
 export const PAGE_LABELS: Record<PageId, string> = {
     page1: '실시간 현황',
     page2: '발전 / 에너지',
-    page3: '수소 / 예측',
+    page3: '수소 시뮬레이션',
 };
 
 // Page 1 — 실시간 현황 (max 10 rows)
@@ -75,9 +73,7 @@ const PAGE2_DEFAULT_LAYOUT: DashboardLayoutItem[] = [
 
 // Page 3 — 수소 / 예측 (max 10 rows)
 const PAGE3_DEFAULT_LAYOUT: DashboardLayoutItem[] = [
-    { id: 'weather',           x: 0, y: 0, w: 4, h: 10, minW: 3, minH: 3, maxW: 8,  maxH: 16 },
-    { id: 'hydrogen-scenario', x: 4, y: 0, w: 8, h: 5,  minW: 4, minH: 3, maxW: 12, maxH: 11 },
-    { id: 'forecast-48h',      x: 4, y: 5, w: 8, h: 5,  minW: 6, minH: 4, maxW: 12, maxH: 11 },
+    { id: 'hydrogen-scenario', x: 0, y: 0, w: 12, h: 10, minW: 6, minH: 7, maxW: 12, maxH: 11 },
 ];
 
 export const PAGE_DEFAULT_LAYOUTS: Record<PageId, DashboardLayoutItem[]> = {

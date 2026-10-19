@@ -1,276 +1,167 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchWithTiming, ENDPOINTS, getJejuWeatherRegionUrl } from './api';
-import {
-    ForecastPredict, SukubOperation, SukubOperationItem, ReGenPredict, DemandPredict, JejuCurtPredict,
-    HgGenPredict, HgGenInfo, EssPoint, ServiceHealth, AlertItem, JejuRegion, JEJU_REGIONS
-} from './types';
-import { buildEssSeriesFromData, topHours, msToHealth } from './utils';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ENDPOINTS, getJejuWeatherRegionUrl } from './api';
+import { fetchJson, parseKstTimestamp, validateRows } from './dashboardRequests';
+import { msToHealth } from './utils';
+import type { SukubOperation, ReGenPredict, DemandPredict, JejuCurtPredict, AlertItem, JejuRegion } from './types';
+import { JEJU_REGIONS } from './types';
+
+export const RESOURCE_LABELS = {
+    operation: '수급 현황', history: '수급 이력', solar: '태양광 예측',
+    wind: '풍력 예측', demand: '수요 예측', curt: '출력제어 예측', weather: '제주 날씨',
+} as const;
+export type ResourceKey = keyof typeof RESOURCE_LABELS;
+export type ResourceState = { error: string | null; updatedAt: string | null; ms: number | null };
+const INITIAL_STATES = Object.fromEntries(Object.keys(RESOURCE_LABELS).map(key =>
+    [key, { error: null, updatedAt: null, ms: null }])) as Record<ResourceKey, ResourceState>;
+const EMPTY_WEATHER = { ncstTempC: null, ncstWindMs: null, ncstWindDir: null,
+    ncstPty: null, ncstPtyText: null, ncstSky: null };
+type Weather = { ncstTempC: number | null; ncstWindMs: number | null; ncstWindDir: number | null;
+    ncstPty: number | null; ncstPtyText: string | null; ncstSky: number | null };
 
 export function useDashboardData() {
-    const [forecastPredict, setForecastPredict] = useState<ForecastPredict | null>(null);
-    const [sukubOperation, setSukubOperation] = useState<SukubOperation | null>(null);
-    const [sukubOperationToday, setSukubOperationToday] = useState<SukubOperationItem[]>([]);
-    const [reGenPredictData, setReGenPredictData] = useState<ReGenPredict[]>([]);
-    const [windPredictData, setWindPredictData] = useState<ReGenPredict[]>([]);
-    const [demandPredict, setDemandPredict] = useState<DemandPredict[]>([]);
-    const [jejuCurtPredictToday, setJejuCurtPredictToday] = useState<JejuCurtPredict[]>([]);
-    const [hgGenPredictToday, setHgGenPredictToday] = useState<HgGenPredict[]>([]);
-    const [hgGenInfoToday, setHgGenInfoToday] = useState<HgGenInfo[]>([]);
-    const [forecastPredictLast48h, setForecastPredictLast48h] = useState<ForecastPredict[]>([]);
-    const [essSeries, setEssSeries] = useState<EssPoint[]>([]);
-    const [currentSoc, setCurrentSoc] = useState<number | null>(null);
-    const [bestChrgTimes, setBestChrgTimes] = useState<string[]>([]);
-    const [bestDiscTimes, setBestDiscTimes] = useState<string[]>([]);
-    const [hgGenUtilPct, setHgGenUtilPct] = useState<number | null>(null);
-    const [hgGenLastItem, setHgGenLastItem] = useState<HgGenInfo | null>(null);
-
+    const [sukubOperation, setOperation] = useState<SukubOperation | null>(null);
+    const [sukubOperationToday, setHistory] = useState<SukubOperation[]>([]);
+    const [reGenPredictData, setSolar] = useState<ReGenPredict[]>([]);
+    const [windPredictData, setWind] = useState<ReGenPredict[]>([]);
+    const [rawDemand, setDemand] = useState<DemandPredict[]>([]);
+    const [jejuCurtPredictToday, setCurt] = useState<JejuCurtPredict[]>([]);
+    const [weather, setWeather] = useState<Weather>(EMPTY_WEATHER);
+    const [resourceStates, setResourceStates] = useState(INITIAL_STATES);
     const [lastUpdated, setLastUpdated] = useState('');
-    const [apiStatus, setApiStatus] = useState<'ok' | 'error'>('error');
-    const [dbStatus, setDbStatus] = useState<'ok' | 'error'>('error');
-    
-    // 에러 및 로딩 상태
-    const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    
-    // 자동 새로고침 상태 관리
-    const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
     const [isClient, setIsClient] = useState(false);
+    const [autoRefresh, setAutoRefresh] = useState(true);
+    const [now, setNow] = useState(0);
+    const [selectedJejuRegion, setSelectedJejuRegion] = useState(JEJU_REGIONS[0]);
+    const regionRef = useRef(selectedJejuRegion);
+    const activeRequest = useRef<AbortController | null>(null);
+    const activeWeather = useRef<AbortController | null>(null);
 
-    // 시스템 상태
-    const [alerts] = useState<AlertItem[]>([
-        { id: 'a1', icon: 'warn', title: '태양광 발전량 급감', desc: '10분 전 - 태양광 발전량이 예측치 대비 20% 감소했습니다.', ago: '10분 전' },
-        { id: 'a2', icon: 'bell', title: '전력 수요 증가', desc: '30분 전 - 전력 수요가 예측치보다 5% 증가했습니다.', ago: '30분 전' },
-    ]);
-    const [latApi, setLatApi] = useState<number | null>(null);
-    const [latDb, setLatDb] = useState<number | null>(null);
-    const [latPredict, setLatPredict] = useState<number | null>(null);
-    const [healthApi, setHealthApi] = useState<ServiceHealth>('down');
-    const [healthDb, setHealthDb] = useState<ServiceHealth>('down');
-    const [healthPredict, setHealthPredict] = useState<ServiceHealth>('down');
-    const [hgGenLatency, setHgGenLatency] = useState<number | null>(null);
-    const [ncstTempC, setNcstTempC] = useState<number | null>(null);
-    const [ncstWindMs, setNcstWindMs] = useState<number | null>(null);
-    const [ncstWindDir, setNcstWindDir] = useState<number | null>(null);
-    const [ncstPty, setNcstPty] = useState<number | null>(null);
-    const [ncstPtyText, setNcstPtyText] = useState<string | null>(null);
-    const [ncstSky, setNcstSky] = useState<number | null>(null);
-    const [selectedJejuRegion, setSelectedJejuRegion] = useState<JejuRegion>(JEJU_REGIONS[0]); // 기본값: 제주시
-    // load()가 지역 변경 시마다 재생성되어 전체 대시보드를 다시 불러오는 것을 막기 위해 ref로 최신값 참조
-    const selectedJejuRegionRef = useRef(selectedJejuRegion);
-    useEffect(() => {
-        selectedJejuRegionRef.current = selectedJejuRegion;
-    }, [selectedJejuRegion]);
+    const loadJejuWeather = useCallback(async (region: JejuRegion) => {
+        regionRef.current = region;
+        activeWeather.current?.abort();
+        const controller = new AbortController();
+        activeWeather.current = controller;
+        // Clear previous-region values immediately, including when the new request fails.
+        setWeather(EMPTY_WEATHER);
+        setResourceStates(previous => ({ ...previous, weather: { error: null, updatedAt: null, ms: null } }));
+        try {
+            const { data, ms } = await fetchJson<Record<string, unknown>>(
+                getJejuWeatherRegionUrl(region.nx, region.ny), controller.signal);
+            if (controller.signal.aborted) return;
+            if (data.success !== true) throw new Error('기상 데이터 없음');
+            const number = (key: string) => typeof data[key] === 'number' && Number.isFinite(data[key]) ? data[key] as number : null;
+            setWeather({ ncstTempC: number('ncst_tempC'), ncstWindMs: number('ncst_windMs'),
+                ncstWindDir: number('ncst_windDirDeg'), ncstPty: number('ncst_ptyCode'),
+                ncstPtyText: typeof data.ncst_ptyText === 'string' ? data.ncst_ptyText : null,
+                ncstSky: number('fcst_skyCode') });
+            setResourceStates(previous => ({ ...previous, weather: { error: null, updatedAt: new Date().toISOString(), ms } }));
+        } catch (error) {
+            if (!controller.signal.aborted) setResourceStates(previous => ({ ...previous,
+                weather: { error: error instanceof Error ? error.message : '조회 실패', updatedAt: null, ms: null } }));
+        } finally {
+            if (activeWeather.current === controller) activeWeather.current = null;
+        }
+    }, []);
 
     const load = useCallback(async () => {
+        if (activeRequest.current) return;
+        const controller = new AbortController();
+        activeRequest.current = controller;
         setIsLoading(true);
-        setError(null);
-        
+        let successes = 0;
+        async function request<T>(key: ResourceKey, url: string, validate: (data: unknown) => T, update: (data: T) => void) {
+            try {
+                const result = await fetchJson<unknown>(url, controller.signal);
+                const data = validate(result.data);
+                if (controller.signal.aborted) return;
+                update(data);
+                successes++;
+                setResourceStates(previous => ({ ...previous,
+                    [key]: { error: Array.isArray(data) && !data.length ? '데이터 없음' : null,
+                        updatedAt: new Date().toISOString(), ms: result.ms } }));
+            } catch (error) {
+                if (!controller.signal.aborted) setResourceStates(previous => ({ ...previous,
+                    [key]: { ...previous[key], error: error instanceof Error ? error.message : '조회 실패', ms: null } }));
+            }
+        }
+        const operationFields = ['suppAbility', 'currPwrTot', 'renewPwrTot', 'renewPwrSolar', 'renewPwrWind'];
+        const forecastFields = ['fcstQgen', 'fcstQgmx', 'fcstQgmn'];
         try {
-            const [
-                forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
-                sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap,
-            ] = await Promise.all([
-                fetchWithTiming(ENDPOINTS.forecastPredictLatest),
-                fetchWithTiming(ENDPOINTS.sukubOperationLatest),
-                fetchWithTiming(ENDPOINTS.reGenPredictLatestCrtn),
-                fetchWithTiming(ENDPOINTS.demandPredictLatestCrtn),
-                fetchWithTiming(ENDPOINTS.sukubOperationLast24h),
-                fetchWithTiming(ENDPOINTS.jejuCurtPredictLatestCrtn),
-                fetchWithTiming(ENDPOINTS.hgGenPredictToday),
-                fetchWithTiming(ENDPOINTS.hgGenInfoToday),
+            await Promise.allSettled([
+                request('operation', ENDPOINTS.sukubOperationLatest, value => validateRows<SukubOperation>(value, 'tm', operationFields, false), setOperation),
+                request('history', ENDPOINTS.sukubOperationLast24h, value => validateRows<SukubOperation[]>(value, 'tm', operationFields), setHistory),
+                request('solar', ENDPOINTS.reGenPredictLatestCrtn, value => validateRows<ReGenPredict[]>(value, 'fcstTm', forecastFields), setSolar),
+                request('wind', ENDPOINTS.windPredictLatestCrtn, value => validateRows<ReGenPredict[]>(value, 'fcstTm', forecastFields), setWind),
+                request('demand', ENDPOINTS.demandPredictLatestCrtn, value => validateRows<DemandPredict[]>(value, 'fcstTm', forecastFields), setDemand),
+                request('curt', ENDPOINTS.jejuCurtPredictLatestCrtn, value => validateRows<JejuCurtPredict[]>(value, 'fcstTm', ['fcstMinpw', 'fcstCurt']), setCurt),
+                loadJejuWeather(regionRef.current),
             ]);
-
-            // ok 체크
-            const ok = [
-                forecastPredictWrap, sukubOperationWrap, reGenPredictWrap, demandPredictWrap,
-                sukubOperationTodayWrap, jejuCurtPredictWrap, hgGenPredictWrap, hgGenInfoWrap
-            ].every(w => w.res.ok);
-            
-            if (!ok) {
-                throw new Error('일부 API 요청이 실패했습니다');
+            if (!controller.signal.aborted && successes > 0) setLastUpdated(new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }));
+        } finally {
+            if (activeRequest.current === controller) {
+                activeRequest.current = null;
+                setIsLoading(false);
             }
-
-        // 파싱
-        const [forecastPredictData, sukubOperationData, reGenPredict, demandPredictData, sukubOperationTodayData, jejuCurtPredictData, hgGenPredictData, hgGenInfoData] =
-            await Promise.all([
-                forecastPredictWrap.res.json(), sukubOperationWrap.res.json(), reGenPredictWrap.res.json(), demandPredictWrap.res.json(),
-                sukubOperationTodayWrap.res.json(), jejuCurtPredictWrap.res.json(), hgGenPredictWrap.res.json(), hgGenInfoWrap.res.json()
-            ]);
-
-        // 상태 산출
-        setLatApi(Number(forecastPredictWrap.ms.toFixed(0)));
-        setLatDb(Number(sukubOperationWrap.ms.toFixed(0)));
-        setLatPredict(Number(reGenPredictWrap.ms.toFixed(0)));
-        setHealthApi(msToHealth(true, forecastPredictWrap.ms));
-        setHealthDb(msToHealth(true, sukubOperationWrap.ms));
-        setHealthPredict(msToHealth(true, reGenPredictWrap.ms));
-
-        // 필터/정렬
-        const hgGenPredictFilter = (hgGenPredictData as HgGenPredict[])
-            .filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL')
-            .sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-
-        const hgGenInfoFilter = (hgGenInfoData as HgGenInfo[])
-            .filter(d => (d.areaGrpCd ?? 'SEOUL') === 'SEOUL')
-            .sort((a, b) => a.tm.localeCompare(b.tm));
-
-        // reGenPredict, demandPredict, jejuCurtPredict는 이미 시간순 정렬되어 옴
-
-        // 상태 반영
-        setForecastPredict(forecastPredictData as ForecastPredict);
-        setSukubOperation(sukubOperationData as SukubOperation);
-        setReGenPredictData(reGenPredict as ReGenPredict[]);
-        setSukubOperationToday(sukubOperationTodayData as SukubOperationItem[]);
-        setJejuCurtPredictToday(jejuCurtPredictData as JejuCurtPredict[]);
-        setHgGenPredictToday(hgGenPredictFilter);
-        setHgGenInfoToday(hgGenInfoFilter);
-
-        // 병합 - 날짜+시간(YYYYMMDDHH)으로 정확하게 매칭
-        setDemandPredict((demandPredictData as DemandPredict[]).map(item => {
-            const matched = (sukubOperationTodayData as SukubOperationItem[]).find(
-                s => s.tm.slice(0, 10) === item.fcstTm.slice(0, 10) // YYYYMMDDHH 비교
-            );
-            return { ...item, currPwrTot: matched?.currPwrTot ?? null };
-        }));
-
-        // ESS 파생
-        const ess = buildEssSeriesFromData(reGenPredict as ReGenPredict[]);
-        setEssSeries(ess);
-        const lastWithSoc = [...ess].reverse().find(p => typeof p.soc === 'number');
-        setCurrentSoc(lastWithSoc?.soc ?? null);
-        setBestChrgTimes(topHours(ess, 'essChrg', 3));
-        setBestDiscTimes(topHours(ess, 'essDisc', 3));
-
-        // 수소 생산(단지)
-        const last = hgGenInfoFilter[hgGenInfoFilter.length - 1] ?? null;
-        setHgGenLastItem(last);
-        const util = last && last.hgenCapa > 0 ? Math.round((last.hgenProd / last.hgenCapa) * 100) : null;
-        setHgGenUtilPct(util);
-        setHgGenLatency(Number(((hgGenInfoWrap.ms) / 1000).toFixed(2)));
-
-        setApiStatus('ok');
-        setDbStatus(forecastPredictData && sukubOperationData ? 'ok' : 'error');
-
-        // 최근 48시간 예보는 별도로 가져오되 실패해도 대시보드 렌더는 계속
-        try {
-            const res = await fetch(ENDPOINTS.forecastPredictLast48h);
-            if (res.ok) {
-                const arr = (await res.json()) as ForecastPredict[];
-                const sorted = [...arr].sort((a, b) => a.fcstTm.localeCompare(b.fcstTm));
-                setForecastPredictLast48h(sorted);
-            }
-        } catch (err) {
-            console.warn('48시간 예보 데이터 로딩 실패:', err);
         }
+    }, [loadJejuWeather]);
 
-        // Weather via backend (nowcast + forecast) - 선택된 지역
-        try {
-            const { nx, ny } = selectedJejuRegionRef.current;
-            const weatherUrl = getJejuWeatherRegionUrl(nx, ny);
-            const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
-            if (weatherRes.ok) {
-                const weatherJson = await weatherRes.json();
-                // NCST (실황) 데이터
-                setNcstTempC(typeof weatherJson.ncst_tempC === 'number' ? weatherJson.ncst_tempC : null);
-                setNcstWindMs(typeof weatherJson.ncst_windMs === 'number' ? weatherJson.ncst_windMs : null);
-                setNcstWindDir(typeof weatherJson.ncst_windDirDeg === 'number' ? weatherJson.ncst_windDirDeg : null);
-                setNcstPty(typeof weatherJson.ncst_ptyCode === 'number' ? weatherJson.ncst_ptyCode : null);
-                setNcstPtyText(typeof weatherJson.ncst_ptyText === 'string' ? weatherJson.ncst_ptyText : null);
-                // FCST (예보) 데이터 - 하늘상태
-                setNcstSky(typeof weatherJson.fcst_skyCode === 'number' ? weatherJson.fcst_skyCode : null);
-            }
-        } catch (err) {
-            console.warn('제주 날씨 데이터 로딩 실패:', err);
-        }
-
-        // 풍력 발전 예측 (별도 조회)
-        try {
-            const res = await fetch(ENDPOINTS.windPredictLatestCrtn);
-            if (res.ok) {
-                const arr = (await res.json()) as ReGenPredict[];
-                setWindPredictData(arr);
-            }
-        } catch (err) {
-            console.warn('풍력 발전 예측 데이터 로딩 실패:', err);
-        }
-        
-        setLastUpdated(new Date().toLocaleString('ko-KR'));
-        setIsLoading(false);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : '데이터 로딩 중 오류가 발생했습니다';
-            setError(errorMessage);
-            setIsLoading(false);
-            setApiStatus('error');
-            setDbStatus('error');
-            console.warn('Dashboard data load error:', err);
-        }
-    }, []);
-
-    // 클라이언트에서 localStorage 값 복원
     useEffect(() => {
+        try {
+            const saved = localStorage.getItem('dashboard-auto-refresh');
+            if (saved === 'true' || saved === 'false') setAutoRefresh(saved === 'true');
+        } catch { /* Storage is optional. */ }
         setIsClient(true);
-        const saved = localStorage.getItem('dashboard-auto-refresh');
-        if (saved !== null) {
-            setAutoRefresh(JSON.parse(saved));
-        }
-    }, []);
-
-    // 자동 새로고침 상태 저장
-    useEffect(() => {
-        if (isClient) {
-            localStorage.setItem('dashboard-auto-refresh', JSON.stringify(autoRefresh));
-        }
-    }, [autoRefresh, isClient]);
-
-
-    useEffect(() => {
-        (async () => {
-            try { await load(); } catch { setApiStatus('error'); setDbStatus('error'); }
-        })();
-        
-        let id: NodeJS.Timeout | null = null;
-        if (autoRefresh) {
-            id = setInterval(load, 5 * 60 * 1000);
-        }
-        
+        setNow(Date.now());
+        const clock = setInterval(() => setNow(Date.now()), 30000);
+        void load();
         return () => {
-            if (id) clearInterval(id);
+            clearInterval(clock);
+            activeRequest.current?.abort();
+            activeRequest.current = null;
+            activeWeather.current?.abort();
+            activeWeather.current = null;
         };
-    }, [autoRefresh, load]);
+    }, [load]);
 
-    // 제주 날씨 별도 로드 함수
-    const loadJejuWeather = async (region: JejuRegion) => {
-        try {
-            const url = getJejuWeatherRegionUrl(region.nx, region.ny);
-            const res = await fetch(url, { cache: 'no-store' });
-            if (res.ok) {
-                const json = await res.json();
-                // NCST (실황) 데이터
-                setNcstTempC(typeof json.ncst_tempC === 'number' ? json.ncst_tempC : null);
-                setNcstWindMs(typeof json.ncst_windMs === 'number' ? json.ncst_windMs : null);
-                setNcstWindDir(typeof json.ncst_windDirDeg === 'number' ? json.ncst_windDirDeg : null);
-                setNcstPty(typeof json.ncst_ptyCode === 'number' ? json.ncst_ptyCode : null);
-                setNcstPtyText(typeof json.ncst_ptyText === 'string' ? json.ncst_ptyText : null);
-                // FCST (예보) 데이터 - 하늘상태
-                setNcstSky(typeof json.fcst_skyCode === 'number' ? json.fcst_skyCode : null);
-            }
-        } catch { /* ignore */ }
-    };
+    useEffect(() => {
+        if (!isClient) return;
+        try { localStorage.setItem('dashboard-auto-refresh', String(autoRefresh)); } catch { /* optional */ }
+        if (!autoRefresh) return;
+        const timer = setInterval(() => void load(), 5 * 60 * 1000);
+        return () => clearInterval(timer);
+    }, [autoRefresh, isClient, load]);
 
+    const demandPredict = useMemo(() => rawDemand.map(item => {
+        const exact = sukubOperationToday.find(row => row.tm === item.fcstTm);
+        return { ...item, currPwrTot: exact?.currPwrTot ?? null };
+    }), [rawDemand, sukubOperationToday]);
+
+    const sourceWarnings: Partial<Record<ResourceKey, string>> = {};
+    if (sukubOperation && now && now - parseKstTimestamp(sukubOperation.tm) > 15 * 60 * 1000) {
+        sourceWarnings.operation = '수급 기준시각이 15분 이상 지났습니다.';
+    }
+    for (const [key, rows] of [['solar', reGenPredictData], ['wind', windPredictData],
+        ['demand', rawDemand], ['curt', jejuCurtPredictToday]] as const) {
+        if (rows.length && now && rows.every(row => parseKstTimestamp(row.fcstTm) < now)) {
+            sourceWarnings[key] = '예측 대상 시간이 모두 지났습니다.';
+        }
+    }
+    const alerts: AlertItem[] = (Object.keys(RESOURCE_LABELS) as ResourceKey[]).flatMap(key => {
+        const message = resourceStates[key].error || sourceWarnings[key];
+        return message ? [{ id: key, icon: 'warn' as const, title: RESOURCE_LABELS[key], desc: message, ago: '현재' }] : [];
+    });
+    const health = (key: ResourceKey) => msToHealth(!resourceStates[key].error && resourceStates[key].ms != null, resourceStates[key].ms ?? 0);
+    const apiStatus = (Object.keys(RESOURCE_LABELS) as ResourceKey[]).filter(key => key !== 'weather')
+        .every(key => resourceStates[key].updatedAt && !resourceStates[key].error) ? 'ok' as const : 'error' as const;
     return {
-        // 원본/파생
-        forecastPredict, sukubOperation, sukubOperationToday, reGenPredictData, windPredictData, demandPredict, jejuCurtPredictToday, hgGenPredictToday, hgGenInfoToday,
-        forecastPredictLast48h,
-        essSeries, currentSoc, bestChrgTimes, bestDiscTimes,
-        hgGenUtilPct, hgGenLastItem,
-        // 시스템/공용
-        alerts, latApi, latDb, latPredict, healthApi, healthDb, healthPredict, hgGenLatency,
-        ncstTempC, ncstWindMs, ncstWindDir, ncstPty, ncstPtyText, ncstSky,
-        lastUpdated, apiStatus, dbStatus,
-        error, isLoading,
-        // 자동 새로고침
-        autoRefresh, setAutoRefresh, load, isClient,
-        // 제주 지역 선택
-        selectedJejuRegion, setSelectedJejuRegion, loadJejuWeather,
+        sukubOperation, sukubOperationToday, reGenPredictData, windPredictData, demandPredict, jejuCurtPredictToday,
+        ...weather, selectedJejuRegion, setSelectedJejuRegion, loadJejuWeather,
+        resourceStates, sourceWarnings, alerts, lastUpdated, apiStatus,
+        dbStatus: sukubOperation && !resourceStates.operation.error && !sourceWarnings.operation ? 'ok' as const : 'error' as const,
+        latApi: resourceStates.operation.ms, latDb: resourceStates.history.ms, latPredict: resourceStates.solar.ms != null && resourceStates.wind.ms != null ? Math.max(resourceStates.solar.ms, resourceStates.wind.ms) : null,
+        healthApi: health('operation'), healthDb: health('history'), healthPredict: health('solar') === 'down' || health('wind') === 'down' ? 'down' as const : health('solar') === 'slow' || health('wind') === 'slow' ? 'slow' as const : 'ok' as const,
+        error: alerts.length ? alerts.map(item => `${item.title}: ${item.desc}`).join(' · ') : null,
+        isLoading, isClient, autoRefresh, setAutoRefresh, load,
     };
 }

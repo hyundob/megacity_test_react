@@ -22,8 +22,7 @@ const PAGES: PageId[] = ['page1', 'page2', 'page3'];
 export default function Page() {
     const d = useDashboardData();
     const { autoRefresh, setAutoRefresh, load, setSelectedJejuRegion, loadJejuWeather } = d;
-    const [selectedAreaGrpId, setSelectedAreaGrpId] = useState<string>('');
-    const [currentPage, setCurrentPage] = useState(0);
+     const [currentPage, setCurrentPage] = useState(0);
     const [pageLabelFlash, setPageLabelFlash] = useState(true);
     const [visibleWidgets, setVisibleWidgets] = useState<Record<PageId, DashboardWidgetId[]>>(PAGE_DEFAULT_WIDGETS);
     const [visibleLoaded, setVisibleLoaded] = useState(false);
@@ -37,7 +36,9 @@ export default function Page() {
             if (stored) {
                 const parsed = JSON.parse(stored) as Record<string, DashboardWidgetId[]>;
                 if (PAGES.every(p => Array.isArray(parsed[p]))) {
-                    setVisibleWidgets(parsed as Record<PageId, DashboardWidgetId[]>);
+                    setVisibleWidgets(Object.fromEntries(PAGES.map(p => [p,
+                        [...new Set(parsed[p])].filter(id => PAGE_DEFAULT_WIDGETS[p].includes(id)),
+                    ])) as Record<PageId, DashboardWidgetId[]>);
                 }
             }
         } catch { /* ignore */ }
@@ -46,7 +47,7 @@ export default function Page() {
 
     useEffect(() => {
         if (!visibleLoaded) return;
-        localStorage.setItem(VISIBLE_WIDGETS_STORAGE_KEY, JSON.stringify(visibleWidgets));
+        try { localStorage.setItem(VISIBLE_WIDGETS_STORAGE_KEY, JSON.stringify(visibleWidgets)); } catch { /* storage unavailable */ }
     }, [visibleWidgets, visibleLoaded]);
 
     // Scroll-snap page tracker
@@ -71,28 +72,10 @@ export default function Page() {
     }, [currentPage]);
 
     // KPI
-    const kpi = useKPICalculations({ sukubOperation: d.sukubOperation, hgGenUtilPct: d.hgGenUtilPct });
+    const kpi = useKPICalculations({ sukubOperation: d.sukubOperation, hgGenUtilPct: null });
 
     const handleToggleAutoRefresh = useCallback(() => setAutoRefresh(!autoRefresh), [autoRefresh, setAutoRefresh]);
     const handleManualRefresh = useCallback(() => load(), [load]);
-    const handleAreaGrpIdChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedAreaGrpId(e.target.value);
-    }, []);
-
-    const areaGrpIds = useMemo(() => {
-        const ids = new Set(d.forecastPredictLast48h.map(item => item.areaGrpId).filter(Boolean));
-        return Array.from(ids).sort();
-    }, [d.forecastPredictLast48h]);
-
-    useEffect(() => {
-        if (areaGrpIds.length > 0 && !selectedAreaGrpId) setSelectedAreaGrpId(areaGrpIds[0]);
-    }, [areaGrpIds, selectedAreaGrpId]);
-
-    const filteredData = useMemo(() => {
-        if (!selectedAreaGrpId) return [];
-        return d.forecastPredictLast48h.filter(item => item.areaGrpId === selectedAreaGrpId);
-    }, [d.forecastPredictLast48h, selectedAreaGrpId]);
-
     const handleRegionSelect = useCallback(async (region: JejuRegion) => {
         if (!region) return;
         setSelectedJejuRegion(region);
@@ -102,12 +85,8 @@ export default function Page() {
     const allWidgets = useMemo(() => buildDashboardWidgets({
         data: d,
         kpi,
-        selectedAreaGrpId,
-        areaGrpIds,
-        filteredForecastData: filteredData,
-        onAreaGrpIdChange: handleAreaGrpIdChange,
         onRegionSelect: handleRegionSelect,
-    }), [d, kpi, selectedAreaGrpId, areaGrpIds, filteredData, handleAreaGrpIdChange, handleRegionSelect]);
+    }), [d, kpi, handleRegionSelect]);
 
     const widgetMap = useMemo(() => new Map(allWidgets.map(w => [w.id, w])), [allWidgets]);
 
@@ -140,6 +119,8 @@ export default function Page() {
             <div className="snap-navbar">
                 <Navbar
                     lastUpdated={d.lastUpdated}
+                    isLoading={d.isLoading}
+                    error={d.error}
                     apiStatus={d.apiStatus}
                     dbStatus={d.dbStatus}
                     autoRefresh={d.autoRefresh}

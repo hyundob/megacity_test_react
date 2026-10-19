@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 메가시티 에너지 대시보드
 
-## Getting Started
+Next.js 15 / React 19 / TypeScript 기반 웹 대시보드입니다.
 
-First, run the development server:
+## 실행
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+`npm install`, `npm run dev`. 배포는 `npm run build` 후 `npm start`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+API는 기본적으로 같은 origin의 `/api`를 사용합니다. Next 서버가 `BACKEND_API_URL`로 프록시하며 기본 대상은 `http://localhost:8080/api`입니다. 별도 백엔드 서버를 사용하면 `.env.local`에 대상 주소를 설정한 뒤 빌드하세요. `.env.example`을 참고하세요. 브라우저 직접 호출이 필요한 경우에만 `NEXT_PUBLIC_API_BASE_URL`과 백엔드 CORS를 설정하세요.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 현재 화면
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 실시간 현황: 제주 지도·기상청 날씨, 수급 현황, 수요 예측, 조회 상태.
+- 발전 / 에너지: 수급 이력, 출력제어, 태양광·풍력 예측, 수요 비교.
+- 수소 시뮬레이션: 준비 중. 기존 임시 생산량 계산은 제공하지 않습니다.
 
-## Learn More
+수소단지 기상 예측 위젯 2개와 기존 수소단지 기상·생산 API 호출은 제거했습니다. 저장된 위젯 목록에서 미사용 항목도 제외합니다. `src/temp`는 활성 화면에서 사용하지 않는 과거 코드입니다.
 
-To learn more about Next.js, take a look at the following resources:
+API는 독립적으로 갱신되며 실패 시 해당 자료의 오류와 최근 수신 시각을 표시합니다. 상태 카드는 조회 응답 상태이며 DB 자체나 예측 엔진의 상태 검사를 의미하지 않습니다. 수급 기준시각이 15분 이상 지난 경우와 예측 대상 시간이 모두 지난 경우에는 별도 경고합니다. 자동 조회는 5분 주기입니다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 검증
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build`.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+기존 `FRONTEND_DOCUMENTATION.md`의 미사용 위젯 설명보다 이 문서와 현재 소스를 우선합니다.

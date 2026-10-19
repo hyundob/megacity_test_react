@@ -80,9 +80,8 @@ export function topHours(arr: EssPoint[], key: 'essChrg' | 'essDisc', k = 3): st
 
 export const msToHealth = (ok: boolean, ms: number): ServiceHealth => {
     if (!ok) return 'down';
-    if (ms <= 200) return 'ok';
-    if (ms <= 800) return 'slow';
-    return 'down';
+    if (ms <= 500) return 'ok';
+    return 'slow';
 };
 export const healthText = (h: ServiceHealth) => (h === 'ok' ? '정상' : h === 'slow' ? '지연' : '장애');
 export const healthDot = (h: ServiceHealth) =>

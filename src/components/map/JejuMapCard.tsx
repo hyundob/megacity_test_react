@@ -249,7 +249,7 @@ export function JejuMapCard({
                         <MapPin className="w-4 h-4 text-[#E8483F] dark:text-[#FF6B6B]"/>
                     </div>
                     <div>
-                        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">제주도 지역 선택 및 기상 현황</h2>
+                        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">제주도 지역 선택</h2>
                         <p className="text-xs text-slate-600 dark:text-slate-400">지도에서 지역을 클릭하여 선택하세요</p>
                     </div>
                 </div>

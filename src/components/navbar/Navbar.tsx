@@ -8,6 +8,8 @@ import { useTheme } from '@/components/theme/ThemeProvider';
 
 interface NavbarProps {
     lastUpdated: string | null;
+    isLoading?: boolean;
+    error?: string | null;
     apiStatus: 'ok' | 'error';
     dbStatus: 'ok' | 'error';
     autoRefresh: boolean;
@@ -18,6 +20,8 @@ interface NavbarProps {
 
 export default function Navbar({
     lastUpdated,
+    isLoading = false,
+    error,
     apiStatus,
     dbStatus,
     autoRefresh,
@@ -35,7 +39,7 @@ export default function Navbar({
                     {/* 왼쪽: 제목 및 업데이트 정보 */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-wide">DASHBOARD</h1>
+                            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-wide">메가시티 섹터커플링 대시보드</h1>
                             <div className="flex items-center gap-2">
                                 <div className={`status-badge ${apiStatus === 'ok' ? 'status-badge-success' : 'status-badge-error'}`}>
                                     <Circle size={6} fill="currentColor" />
@@ -43,14 +47,15 @@ export default function Navbar({
                                 </div>
                                 <div className={`status-badge ${dbStatus === 'ok' ? 'status-badge-success' : 'status-badge-error'}`}>
                                     <Circle size={6} fill="currentColor" />
-                                    <span className="text-xs font-semibold">DB</span>
+                                    <span className="text-xs font-semibold">수급 자료</span>
                                 </div>
-                                <span className="live-dot ml-1" title="실시간 데이터" />
+                                {autoRefresh && apiStatus === 'ok' && <span className="live-dot ml-1" title="5분 주기 자동 조회" />}
                             </div>
                         </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-                            마지막 업데이트: <span className="text-slate-700 dark:text-slate-300">{lastUpdated || '로딩 중...'}</span>
+                            최근 조회 완료: <span className="text-slate-700 dark:text-slate-300">{lastUpdated || (isLoading ? '조회 중...' : '조회 기록 없음')}</span>
                         </p>
+                        {error && <p role="alert" className="mt-1 text-xs text-amber-600 dark:text-amber-400">{error}</p>}
                     </div>
 
                     {/* 오른쪽: 액션 버튼들 */}
@@ -76,6 +81,8 @@ export default function Navbar({
                         {/* 수동 새로고침 버튼 */}
                         <button
                             onClick={onManualRefresh}
+                            disabled={isLoading}
+                            aria-busy={isLoading}
                             className="flex items-center gap-2 px-3.5 py-2 bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-lg text-sm font-semibold border border-black/10 dark:border-white/10 hover:bg-black/10 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-slate-100 transition-all duration-200"
                             title="지금 새로고침"
                         >

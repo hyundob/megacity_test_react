@@ -1,6 +1,6 @@
 import { ServiceHealth } from '@/lib/types';
 import { healthDot, healthText } from '@/lib/utils';
-import { Cpu, Database, LucideIcon, Server } from 'lucide-react';
+import { Database, LucideIcon } from 'lucide-react';
 
 function Item({
     name,
@@ -71,13 +71,16 @@ export default function SystemStatusCard(props: {
     healthPredict: ServiceHealth;
 }) {
     const { latApi, latDb, latPredict, healthApi, healthDb, healthPredict } = props;
+    const dbHealth: ServiceHealth = healthApi === 'down' || healthDb === 'down'
+        ? 'down' : healthApi === 'slow' || healthDb === 'slow' ? 'slow' : 'ok';
+    const dbLatency = latApi !== null && latDb !== null ? Math.max(latApi, latDb) : null;
 
     return (
         <div className="min-w-0">
-            <div className="grid grid-cols-3 gap-2">
-                <Item name="API" ms={latApi} health={healthApi} icon={Server} />
-                <Item name="DB" ms={latDb} health={healthDb} icon={Database} />
-                <Item name="예측 엔진" ms={latPredict} health={healthPredict} icon={Cpu} />
+            <div className="grid grid-cols-2 gap-2">
+                <Item name="DB 조회" ms={dbLatency} health={dbHealth} icon={Database} />
+
+                <Item name="예측 DB 조회" ms={latPredict} health={healthPredict} icon={Database} />
             </div>
         </div>
     );

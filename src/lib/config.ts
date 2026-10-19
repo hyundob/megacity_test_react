@@ -1,6 +1,6 @@
 // 환경 변수 및 설정 상수
 export const CONFIG = {
-    API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://210.222.202.14:18080/api',
+    API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
     
     CHART: {
         DEFAULT_HEIGHT: 260,

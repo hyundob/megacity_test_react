@@ -23,15 +23,15 @@ export default function DemandReGenChart({ demandData, reGenData, windData }: De
     const mergedData = useMemo(() => demandData.map(demand => {
         const matchingSolar = reGenMap.get(demand.fcstTm);
         const matchingWind  = windMap.get(demand.fcstTm);
-        const solarGen = matchingSolar ? matchingSolar.fcstQgen : 0;
-        const windGen = matchingWind ? matchingWind.fcstQgen : 0;
-        const totalRenewGen = solarGen + windGen;
+        const solarGen = matchingSolar?.fcstQgen ?? null;
+        const windGen = matchingWind?.fcstQgen ?? null;
+        const totalRenewGen = solarGen != null && windGen != null ? solarGen + windGen : null;
         return {
             ...demand,
             hour: `${demand.fcstTm.slice(4,6)}/${demand.fcstTm.slice(6,8)} ${demand.fcstTm.slice(8, 10)}:00`,
-            renewGen: totalRenewGen > 0 ? totalRenewGen : null,
-            solarGen: solarGen > 0 ? solarGen : null,
-            windGen: windGen > 0 ? windGen : null,
+            renewGen: totalRenewGen,
+            solarGen,
+            windGen,
         };
     }), [demandData, reGenMap, windMap]);
 
